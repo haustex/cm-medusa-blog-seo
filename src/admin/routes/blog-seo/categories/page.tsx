@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
-import { api, CATEGORIES_KEY, errorOf, POSTS_KEY, slugPreview, type AdminCategory } from "../../../lib/api"
+import { api, CATEGORIES_KEY, POSTS_KEY, slugPreview, type AdminCategory } from "../../../lib/api"
+import { useRuleMessage } from "../../../lib/use-settings"
 import { useBlogSettings } from "../../../lib/use-settings"
 
 type Draft = { rank: string; translations: Record<string, { name: string; slug: string; description: string }> }
@@ -13,15 +14,6 @@ const toDraft = (c: AdminCategory | null, codes: string[]): Draft => ({
   rank: String(c?.rank ?? 0),
   translations: Object.fromEntries(codes.map((code) => [code, { name: c?.translations[code]?.name ?? "", slug: c?.translations[code]?.slug ?? "", description: c?.translations[code]?.description ?? "" }])),
 })
-
-/** Rule codes → messages */
-export function useRuleMessage() {
-  const { t } = useTranslation()
-  return (e: unknown) => {
-    const { code, message } = errorOf(e)
-    return code ? t(`blogSeo.errors.${code}`, { defaultValue: message }) : message
-  }
-}
 
 function CategoryForm({ initial, isNew, busy, onSave, onCancel }: { initial: Draft; isNew: boolean; busy: boolean; onSave: (d: Draft) => void; onCancel: () => void }) {
   const { t } = useTranslation()

@@ -5,14 +5,15 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
-import { api, errorOf, POSTS_KEY, SETTINGS_KEY, type AdminSettings } from "../../../lib/api"
-import { useBlogSettings } from "../../../lib/use-settings"
+import { api, POSTS_KEY, SETTINGS_KEY, type AdminSettings } from "../../../lib/api"
+import { useBlogSettings, useRuleMessage } from "../../../lib/use-settings"
 
 type LocaleRow = { code: string; name: string; dir: "ltr" | "rtl"; enabled: boolean }
 
 function SettingsForm({ initial }: { initial: AdminSettings }) {
   const { t } = useTranslation()
   const qc = useQueryClient()
+  const ruleMessage = useRuleMessage()
   const [locales, setLocales] = useState<LocaleRow[]>(initial.locales.map(({ code, name, dir, enabled }) => ({ code, name, dir, enabled })))
   const [defaultLocale, setDefaultLocale] = useState(initial.default_locale)
   const [fallback, setFallback] = useState(initial.fallback)
@@ -29,10 +30,7 @@ function SettingsForm({ initial }: { initial: AdminSettings }) {
       qc.invalidateQueries({ queryKey: SETTINGS_KEY })
       qc.invalidateQueries({ queryKey: POSTS_KEY })
     },
-    onError: (e) => {
-      const { code, message } = errorOf(e)
-      toast.error(code ? t(`blogSeo.errors.${code}`, { defaultValue: message }) : message)
-    },
+    onError: (e) => toast.error(ruleMessage(e)),
   })
   const move = (i: number, d: -1 | 1) => {
     const next = [...locales]

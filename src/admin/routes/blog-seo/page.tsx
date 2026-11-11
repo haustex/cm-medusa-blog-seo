@@ -6,13 +6,13 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { CreditFooter } from "../../components/credit-footer"
-import { api, AUTHORS_KEY, CATEGORIES_KEY, errorOf, formatDateTime, lang, POSTS_KEY, STATUS_COLOR, STATUSES, type AdminPost, type PostStatus } from "../../lib/api"
+import { api, CATEGORIES_KEY, errorOf, formatDateTime, lang, POSTS_KEY, STATUS_COLOR, STATUSES, type AdminPost, type PostStatus } from "../../lib/api"
 import { useBlogSettings } from "../../lib/use-settings"
 
 const PAGE_SIZE = 20
 
 /** Title of a post for lists: default locale first, then any locale that has one */
-export const postTitle = (p: AdminPost, defaultLocale: string, fallback: string) => p.translations[defaultLocale]?.title || Object.values(p.translations).find((t) => t.title)?.title || fallback
+const postTitle = (p: AdminPost, defaultLocale: string, fallback: string) => p.translations[defaultLocale]?.title || Object.values(p.translations).find((t) => t.title)?.title || fallback
 
 const BlogPage = () => {
   const { t, i18n } = useTranslation()
@@ -159,5 +159,4 @@ const BlogPage = () => {
 
 export const config = defineRouteConfig({ label: "Blog", icon: BookOpen })
 export const handle = { breadcrumb: () => "Blog" }
-export { AUTHORS_KEY }
 export default BlogPage

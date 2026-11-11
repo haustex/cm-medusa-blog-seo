@@ -8,8 +8,8 @@ import { CreditFooter } from "../../../components/credit-footer"
 import { ProductPicker, ProductThumb } from "../../../components/product-picker"
 import { RichEditor } from "../../../components/rich-editor"
 import { Field } from "../../../components/states"
-import { api, AUTHORS_KEY, CATEGORIES_KEY, changedFields, CONFIG_KEY, errorOf, formatDateTime, fromLocalInput, isEmptyPatch, lang, postKey, POSTS_KEY, productsById, slugPreview, STATUS_COLOR, toFields, toLocalInput, type AdminPost, type PostFields, type TranslationFields } from "../../../lib/api"
-import { useBlogSettings } from "../../../lib/use-settings"
+import { api, AUTHORS_KEY, CATEGORIES_KEY, changedFields, CONFIG_KEY, formatDateTime, fromLocalInput, isEmptyPatch, lang, postKey, POSTS_KEY, productsById, slugPreview, STATUS_COLOR, toFields, toLocalInput, type AdminPost, type PostFields, type TranslationFields } from "../../../lib/api"
+import { useBlogSettings, useRuleMessage } from "../../../lib/use-settings"
 
 const AUTOSAVE_MS = 1500
 
@@ -117,10 +117,7 @@ const PostEditor = () => {
     qc.invalidateQueries({ queryKey: POSTS_KEY })
   }, [codes.join(","), id, autoSlug])
 
-  const message = (e: unknown) => {
-    const { code, message } = errorOf(e)
-    return code ? t(`blogSeo.errors.${code}`, { defaultValue: message }) : message
-  }
+  const message = useRuleMessage()
 
   /** Write the difference to the server (serialised: one request at a time) */
   const flush = useCallback(async (now: PostFields | null = fields): Promise<boolean> => {

@@ -6,8 +6,8 @@ import { Link } from "react-router-dom"
 import { CoverField } from "../../../components/cover-field"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
-import { api, AUTHORS_KEY, errorOf, POSTS_KEY, type AdminAuthor } from "../../../lib/api"
-import { useBlogSettings } from "../../../lib/use-settings"
+import { api, AUTHORS_KEY, POSTS_KEY, type AdminAuthor } from "../../../lib/api"
+import { useBlogSettings, useRuleMessage } from "../../../lib/use-settings"
 
 type Draft = { name: string; slug: string; type: "person" | "organization"; avatar: string | null; url: string; same_as: string; translations: Record<string, { job_title: string; bio: string }> }
 const toDraft = (a: AdminAuthor | null, codes: string[]): Draft => ({
@@ -84,10 +84,7 @@ const AuthorsPage = () => {
     qc.invalidateQueries({ queryKey: AUTHORS_KEY })
     qc.invalidateQueries({ queryKey: POSTS_KEY })
   }
-  const message = (e: unknown) => {
-    const { code, message } = errorOf(e)
-    return code ? t(`blogSeo.errors.${code}`, { defaultValue: message }) : message
-  }
+  const message = useRuleMessage()
   const body = (d: Draft) => ({
     name: d.name,
     ...(d.slug ? { slug: d.slug } : {}),
