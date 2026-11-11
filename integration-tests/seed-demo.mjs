@@ -15,12 +15,13 @@ async function api(method, url, body) {
   return json
 }
 
-/** A cover: wood-coloured 1200×900 with a label, JPEG through the plugin's upload route */
+/** A cover: wood-coloured 1200×900 with simple shapes (no text: the test host may have no fonts), JPEG through the upload route */
 async function cover(label, hue) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900">
     <rect width="1200" height="900" fill="${hue}"/>
     <rect x="60" y="60" width="1080" height="780" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="6"/>
-    <text x="600" y="470" font-family="sans-serif" font-size="72" fill="#fff" text-anchor="middle">${label}</text>
+    <rect x="300" y="250" width="600" height="400" rx="40" fill="#fff" fill-opacity=".18"/>
+    <circle cx="600" cy="450" r="90" fill="#fff" fill-opacity=".25"/>
   </svg>`
   const png = await sharp(Buffer.from(svg)).png().toBuffer()
   const r = await api("POST", "/admin/blog-seo/uploads", { filename: `${label.toLowerCase().replace(/\W+/g, "-")}.png`, data: `data:image/png;base64,${png.toString("base64")}`, kind: "cover" })
