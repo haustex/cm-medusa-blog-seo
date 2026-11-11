@@ -5,6 +5,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-11
+
+### Changed
+
+- No functional changes. First release built and published by GitHub Actions (`release.yml`) through npm
+  trusted publishing, with provenance attached; 0.1.0 was published by hand to create the package.
+
+## [0.1.0] - 2026-11-11
+
 ### Added
 
 - Blog module `blogSeo` (tables `bseo_*`): posts with per-locale translations (title, slug, excerpt, body,
@@ -29,3 +38,7 @@ All notable changes to this project are documented here. The format follows
   (Tiptap: headings, lists, tables, photos, YouTube, product cards, Q&A), SEO fields, covers, products, publish /
   schedule (browser time zone) / unpublish / delete, preview links, autosave for drafts; categories, authors and
   settings pages (locales, default, fallback; fields fixed by options are read-only). English and Indonesian.
+
+[Unreleased]: https://github.com/haustex/cm-medusa-blog-seo/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/haustex/cm-medusa-blog-seo/compare/f2fcafc...v0.1.1
+[0.1.0]: https://github.com/haustex/cm-medusa-blog-seo/commit/f2fcafc
