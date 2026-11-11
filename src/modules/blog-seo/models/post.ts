@@ -1,6 +1,7 @@
 import { model } from "@medusajs/framework/utils"
 import Author from "./author"
 import Category from "./category"
+import PostSlugHistory from "./post-slug-history"
 import PostTranslation from "./post-translation"
 
 /**
@@ -32,8 +33,9 @@ const Post = model
     author: model.belongsTo(() => Author, { mappedBy: "posts" }).nullable(),
     category: model.belongsTo(() => Category, { mappedBy: "posts" }).nullable(),
     translations: model.hasMany(() => PostTranslation, { mappedBy: "post" }),
+    slug_history: model.hasMany(() => PostSlugHistory, { mappedBy: "post" }),
   })
-  .cascades({ delete: ["translations"] })
+  .cascades({ delete: ["translations", "slug_history"] })
   .indexes([{ on: ["status", "published_at"] }, { on: ["preview_token"], unique: true, where: "deleted_at IS NULL" }])
 
 export default Post

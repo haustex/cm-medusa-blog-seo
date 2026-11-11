@@ -10,7 +10,7 @@
  *   sitemapEntries(urls, index.posts)           → Next.js MetadataRoute.Sitemap entries
  *   rssFeed(urls, "id", index.posts, { title, description })
  */
-import type { IndexRow, StoreBlogSettings } from "./sdk"
+import type { IndexRow, StoreBlogSettings, StorePostResponse } from "./sdk"
 import { blogUrl, categoryUrl, feedUrl, localeBase, pageUrl, postUrl, previewUrl, xDefaultLocale, type UrlContext } from "./lib/urls"
 
 export type { UrlContext }
@@ -159,4 +159,13 @@ ${items.join("\n")}
 export function htmlAttributes(settings: Pick<StoreBlogSettings, "locales">, locale: string): { lang: string; dir: "ltr" | "rtl" } {
   const l = settings.locales.find((s) => s.code.toLowerCase() === locale.toLowerCase())
   return { lang: l?.code ?? locale, dir: l?.dir ?? "ltr" }
+}
+
+/**
+ * The URL to redirect to (301) when `getPost` answered a redirect, else null:
+ *   const r = await blogSeoStore(sdk).getPost(slug, locale)
+ *   const to = postRedirectUrl(urls, locale, r); if (to) permanentRedirect(to)
+ */
+export function postRedirectUrl(urls: BlogUrls, locale: string, result: Pick<StorePostResponse, "redirect"> | null | undefined): string | null {
+  return result?.redirect ? urls.post(locale, result.redirect) : null
 }

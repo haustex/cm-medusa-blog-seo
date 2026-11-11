@@ -197,8 +197,21 @@ async function applyTranslations(container: MedusaContainer, post: PostRow, plan
   for (const p of plans) {
     if (p.current) {
       if (Object.keys(p.patch).length) await svc.updateBseoPostTranslations({ id: p.current.id, ...p.patch })
+      if (p.patch.slug && p.current.slug && p.patch.slug !== p.current.slug) await rememberSlug(container, post.id, p.locale, p.current.slug, p.patch.slug)
     } else await svc.createBseoPostTranslations({ post_id: post.id, locale: p.locale, title: "", excerpt: "", body: "", ...p.patch })
   }
+}
+
+/**
+ * The old slug joins the post's history for that locale (old URLs redirect to the current slug); a history row for
+ * the slug that just became live again is dropped. Rows point at the post, so there are no chains or loops.
+ */
+async function rememberSlug(container: MedusaContainer, postId: string, locale: string, oldSlug: string, newSlug: string) {
+  const svc = service(container)
+  const stale = await svc.listBseoPostSlugHistories({ post_id: postId, locale, slug: newSlug }, { select: ["id"] })
+  if (stale.length) await svc.deleteBseoPostSlugHistories(stale.map((r: { id: string }) => r.id))
+  const existing = await svc.listBseoPostSlugHistories({ post_id: postId, locale, slug: oldSlug }, { select: ["id"], take: 1 })
+  if (!existing.length) await svc.createBseoPostSlugHistories({ post_id: postId, locale, slug: oldSlug })
 }
 
 async function writeTranslations(container: MedusaContainer, post: PostRow, input: Record<string, TranslationInput>, settings: BlogSettings, options: ResolvedOptions) {

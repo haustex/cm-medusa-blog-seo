@@ -52,9 +52,16 @@ function run(cmd, args, opts = {}) {
 }
 const guarded = (...args) => run("node", [GUARD, MEDUSA, ...args])
 
+/** The only paths this script ever removes: non-empty, absolute, inside integration-tests/ (never the plugin, never /) */
+function inside(p) {
+  if (!p || !path.isAbsolute(p) || !p.startsWith(HERE + path.sep) || p === HERE) throw new Error(`refusing to remove ${JSON.stringify(p)}: not inside ${HERE}`)
+  return p
+}
+const rmGuarded = (p) => fs.rmSync(inside(p), { recursive: true, force: true })
+
 function linkNodeModules() {
   const target = path.join(APP_DIR, "node_modules")
-  fs.rmSync(target, { recursive: true, force: true })
+  rmGuarded(target)
   fs.mkdirSync(target, { recursive: true })
   for (const entry of fs.readdirSync(path.join(PLUGIN_DIR, "node_modules"))) {
     if ([".package-lock.json", ".cache", ".vite", ".bin"].includes(entry)) continue
@@ -372,14 +379,19 @@ async function checks() {
   r = await api("GET", "/store/blog-seo/posts/caring-for-a-teak-cutting-board?locale=en", { store: true })
   check("en article by its own slug: translated, seo_title, alternates id+en", r.status === 200 && r.json.post.translated === true && r.json.post.seo_title === "Teak Board Care Guide" && r.json.post.alternates.id === "merawat-talenan-jati" && r.json.post.alternates.en === "caring-for-a-teak-cutting-board" && !("de" in r.json.post.alternates), r.json.post?.alternates)
   r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=en", { store: true })
-  check("the id slug does not resolve the post in en once en has its own slug", r.status === 404, r.json)
+  check("fallback → own translation: the old (default) slug in en answers a 301 to the en slug", r.status === 200 && r.json.post === null && r.json.redirect === "caring-for-a-teak-cutting-board" && r.json.status === 301 && r.json.locale === "en", r.json)
+  r = await api("GET", "/store/blog-seo/posts/caring-for-a-teak-cutting-board?locale=id", { store: true })
+  check("the en slug in id → 301 to the id slug", r.json.redirect === "merawat-talenan-jati", r.json)
   r = await api("GET", "/store/blog-seo/posts/caring-for-a-teak-cutting-board?locale=de", { store: true })
   check("hide: de still hidden", r.status === 404, r.json)
   await api("POST", "/admin/blog-seo/settings", { body: { fallback: "label" } })
   r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=de", { store: true })
   check("label: de gets the default text, translated=false, locale id", r.status === 200 && r.json.post.translated === false && r.json.post.locale === "id", r.json.post && { translated: r.json.post.translated, locale: r.json.post.locale })
   r = await api("GET", "/store/blog-seo/posts/caring-for-a-teak-cutting-board?locale=de", { store: true })
-  check("label: the en slug does not resolve in de (de falls back to id's slug)", r.status === 404, r.json)
+  check("label: the en slug in de → 301 to the slug de shows (id's)", r.json.redirect === "merawat-talenan-jati", r.json)
+  await api("POST", "/admin/blog-seo/settings", { body: { fallback: "hide" } })
+  r = await api("GET", "/store/blog-seo/posts/caring-for-a-teak-cutting-board?locale=de", { store: true })
+  check("hide: nothing to redirect to in de → 404", r.status === 404, r.json)
   await api("POST", "/admin/blog-seo/settings", { body: { fallback: "default" } })
 
   section("Editing a public post: content_updated_at, slug change, featured, incompleteness guard")
@@ -395,7 +407,27 @@ async function checks() {
   hook = await waitHook((h) => postsIn(h).some((p) => p.id === post.id))
   check("webhook carries previous_slugs for redirects", postsIn(hook)[0]?.previous_slugs?.id === "merawat-talenan-jati" && postsIn(hook)[0].slugs.id === "talenan-jati-perawatan", hook)
   r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=id", { store: true })
-  check("old slug → 404", r.status === 404, r.json)
+  check("edited slug: the old slug → 301 to the new one", r.json.redirect === "talenan-jati-perawatan" && r.json.status === 301, r.json)
+  r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=en", { store: true })
+  check("the old id slug asked in en → 301 to the en slug (no chain)", r.json.redirect === "caring-for-a-teak-cutting-board", r.json)
+  await api("POST", `/admin/blog-seo/posts/${post.id}`, { body: { translations: { id: { slug: "talenan-jati-cara-merawat" } } } })
+  r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=id", { store: true })
+  check("two edits: the first slug → 301 straight to the newest (no chain)", r.json.redirect === "talenan-jati-cara-merawat", r.json)
+  r = await api("GET", "/store/blog-seo/posts/talenan-jati-perawatan?locale=id", { store: true })
+  check("…and the middle slug too", r.json.redirect === "talenan-jati-cara-merawat", r.json)
+  await api("POST", `/admin/blog-seo/posts/${post.id}`, { body: { translations: { id: { slug: "talenan-jati-perawatan" } } } })
+  r = await api("GET", "/store/blog-seo/posts/talenan-jati-perawatan?locale=id", { store: true })
+  check("slug changed back: it is live again (200, no loop)", r.status === 200 && r.json.post?.slug === "talenan-jati-perawatan", r.json.redirect ?? r.status)
+  r = await api("GET", "/store/blog-seo/posts/talenan-jati-cara-merawat?locale=id", { store: true })
+  check("the slug it just left → 301 to the live one", r.json.redirect === "talenan-jati-perawatan", r.json)
+  r = await api("POST", "/admin/blog-seo/posts", { body: { translations: { id: { title: "Reuse", slug: "merawat-talenan-jati", excerpt: "x", body: "<p>Slug lama dipakai post lain.</p>" } } } })
+  const reuser = r.json.post
+  await api("POST", `/admin/blog-seo/posts/${reuser.id}/publish`, { body: {} })
+  r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=id", { store: true })
+  check("a former slug taken by another post: the live post wins", r.status === 200 && r.json.post?.id === reuser.id, r.json)
+  await api("DELETE", `/admin/blog-seo/posts/${reuser.id}`)
+  r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati?locale=id", { store: true })
+  check("…and after its deletion the history redirect is back", r.json.redirect === "talenan-jati-perawatan", r.json)
   r = await api("POST", `/admin/blog-seo/posts/${post.id}`, { body: { translations: { id: { body: "" } } } })
   check("emptying the default body of a public post is refused (incomplete)", r.status === 400 && r.json.code === "incomplete", r.json)
   r = await api("GET", `/admin/blog-seo/posts/${post.id}`)
@@ -516,6 +548,8 @@ async function checks() {
   check("delete → webhook", !!hook, hooks)
   r = await api("GET", "/store/blog-seo/posts/talenan-jati-perawatan", { store: true })
   check("deleted post gone", r.status === 404, r.json)
+  r = await api("GET", "/store/blog-seo/posts/merawat-talenan-jati", { store: true })
+  check("its slug history is gone with it (404, no redirect)", r.status === 404, r.json)
   r = await api("GET", `/admin/products/${store.product2.id}?fields=id,*bseo_posts`)
   check("product links removed with the post", (r.json.product?.bseo_posts ?? []).length === 0, r.json.product)
   r = await api("DELETE", `/admin/blog-seo/authors/${author2.id}`)
@@ -527,9 +561,9 @@ async function main() {
   if (!fs.existsSync(path.join(PLUGIN_DIR, ".medusa/server/src/modules/blog-seo/index.js"))) {
     throw new Error("Build the plugin first: npm run build")
   }
-  fs.rmSync(STATE_DIR, { recursive: true, force: true })
+  rmGuarded(STATE_DIR)
   fs.mkdirSync(STATE_DIR, { recursive: true })
-  for (const d of ["private", "static"]) fs.rmSync(path.join(APP_DIR, d), { recursive: true, force: true })
+  for (const d of ["private", "static"]) rmGuarded(path.join(APP_DIR, d))
   linkNodeModules()
   await waitForPostgres()
   psql(`DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE)`)
@@ -541,7 +575,7 @@ async function main() {
   if (process.env.BSEO_ADMIN === "1") {
     guarded("build")
     serverDir = path.join(APP_DIR, ".medusa/server")
-    fs.rmSync(path.join(serverDir, "node_modules"), { recursive: true, force: true })
+    rmGuarded(path.join(serverDir, "node_modules"))
     fs.symlinkSync(path.join(APP_DIR, "node_modules"), path.join(serverDir, "node_modules"))
     fs.mkdirSync(path.join(APP_DIR, "static"), { recursive: true })
     if (!fs.existsSync(path.join(serverDir, "static"))) fs.symlinkSync(path.join(APP_DIR, "static"), path.join(serverDir, "static"))

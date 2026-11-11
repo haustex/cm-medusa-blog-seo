@@ -86,6 +86,9 @@ export type IndexRow = {
   locales: Record<string, IndexLocale>
 }
 
+/** A former or foreign slug: redirect permanently to the current one (`postRedirectUrl` in medusa-blog-seo/seo) */
+export type StorePostRedirect = { post: null; redirect: string; status: 301; locale: string }
+export type StorePostResponse = { post: StoreArticle; more: StoreCard[]; redirect?: undefined } | StorePostRedirect
 export type StoreListPostsQuery = { locale?: string; category?: string; author?: string; tag?: string; featured?: "separate" | "none"; limit?: number; offset?: number }
 export type StoreListPostsResponse = { posts: StoreCard[]; featured: StoreCard | null; category: StoreCategory | null; locale: string; count: number; limit: number; offset: number }
 
@@ -99,7 +102,7 @@ export function blogSeoStore(sdk: FetchClient) {
     listPosts: (query: StoreListPostsQuery = {}) => f<StoreListPostsResponse>(`${BASE}/posts`, { query }),
     /** Every public post with every readable locale: sitemaps, feeds, llms.txt */
     index: () => f<{ posts: IndexRow[] }>(`${BASE}/posts`, { query: { view: "index" } }),
-    getPost: (slug: string, locale?: string) => f<{ post: StoreArticle; more: StoreCard[] }>(`${BASE}/posts/${encodeURIComponent(slug)}`, { query: q(locale) }),
+    getPost: (slug: string, locale?: string) => f<StorePostResponse>(`${BASE}/posts/${encodeURIComponent(slug)}`, { query: q(locale) }),
     categories: (locale?: string) => f<{ categories: (StoreCategory & { post_count: number })[]; locale: string }>(`${BASE}/categories`, { query: q(locale) }),
     authors: (locale?: string) => f<{ authors: (StoreAuthor & { post_count: number })[]; locale: string }>(`${BASE}/authors`, { query: q(locale) }),
     author: (slug: string, locale?: string) => f<{ author: StoreAuthor & { post_count: number }; locale: string }>(`${BASE}/authors/${encodeURIComponent(slug)}`, { query: q(locale) }),

@@ -41,22 +41,37 @@ export async function findCategoryBySlug(container: MedusaContainer, ctx: StoreC
   return category ?? null
 }
 
-/** A public post by the slug a reader in the locale sees: its own translation's slug, or (fallback) the default locale's */
-export async function findPublicPostBySlug(container: MedusaContainer, ctx: StoreContext, slug: string): Promise<PostRow | null> {
+export type SlugLookup = { post: PostRow; redirect: string | null }
+
+/**
+ * A public post by slug, for a reader in the context's locale.
+ *   - the slug is what this locale shows (its own translation's slug, or the default locale's through the fallback)
+ *     → { post, redirect: null }
+ *   - the slug is another locale's, a former slug (bseo_post_slug_history), or the default slug of a locale that
+ *     has since been translated → { post, redirect: <the slug this locale shows> }: answer a permanent redirect
+ *   - no public post, or the post is hidden in this locale (fallback "hide") → null
+ * Live slugs win over history, so a slug reused by another post resolves to that post.
+ */
+export async function findPublicPostBySlug(container: MedusaContainer, ctx: StoreContext, slug: string): Promise<SlugLookup | null> {
   const svc = container.resolve(BLOG_SEO_MODULE) as any
-  const locales = Array.from(new Set([ctx.locale, ctx.settings.default_locale]))
-  const hits = await svc.listBseoPostTranslations({ slug, locale: locales }, { select: ["id", "locale", "post_id"], take: 10 })
   const rules = rulesOf(ctx.options)
-  for (const locale of locales) {
-    const hit = hits.find((h: { locale: string }) => h.locale.toLowerCase() === locale.toLowerCase())
-    if (!hit) continue
+  const rank = (locale: string) => (locale.toLowerCase() === ctx.locale.toLowerCase() ? 0 : locale.toLowerCase() === ctx.settings.default_locale.toLowerCase() ? 1 : 2)
+  const live = (await svc.listBseoPostTranslations({ slug }, { select: ["id", "locale", "post_id"], take: 50 })) as { locale: string; post_id: string }[]
+  const history = (await svc.listBseoPostSlugHistories({ slug }, { select: ["id", "locale", "post_id", "created_at"], order: { created_at: "DESC" }, take: 50 })) as { locale: string; post_id: string }[]
+  const candidates = [...live.sort((a, b) => rank(a.locale) - rank(b.locale)), ...history]
+  const seen = new Set<string>()
+  let redirect: SlugLookup | null = null
+  for (const hit of candidates) {
+    if (seen.has(hit.post_id)) continue
+    seen.add(hit.post_id)
     const [post] = (await svc.listBseoPosts({ id: hit.post_id, ...publicFilter(ctx.now) }, { relations: RELATIONS, take: 1 })) as PostRow[]
     if (!post || !isPublic(post, ctx.now)) continue
     const picked = pickTranslation(post, ctx.locale, ctx.settings, rules)
-    // the slug must be the one this locale actually shows (a stale default-locale slug must not resolve a translated post)
-    if (picked && picked.translation.slug === slug) return post
+    if (!picked) continue
+    if (picked.translation.slug === slug) return { post, redirect: null }
+    redirect ??= { post, redirect: picked.translation.slug }
   }
-  return null
+  return redirect
 }
 
 /** Up to `n` other readable posts: same category first, then newest */
