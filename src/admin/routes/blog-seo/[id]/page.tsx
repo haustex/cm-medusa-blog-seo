@@ -2,12 +2,13 @@ import { Badge, Button, Container, Heading, Input, Select, Switch, Text, Textare
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useBlocker, useNavigate, useParams } from "react-router-dom"
 import { CoverField } from "../../../components/cover-field"
 import { CreditFooter } from "../../../components/credit-footer"
 import { ProductPicker, ProductThumb } from "../../../components/product-picker"
 import { RichEditor } from "../../../components/rich-editor"
 import { Field } from "../../../components/states"
+import { LocaleReadOnly } from "../../../components/locale-readonly"
 import { api, AUTHORS_KEY, CATEGORIES_KEY, changedFields, CONFIG_KEY, formatDateTime, fromLocalInput, isEmptyPatch, lang, postKey, POSTS_KEY, productsById, slugPreview, STATUS_COLOR, toFields, toLocalInput, type AdminPost, type PostFields, type TranslationFields } from "../../../lib/api"
 import { useBlogSettings, useRuleMessage } from "../../../lib/use-settings"
 
@@ -21,23 +22,25 @@ function LocaleEditor({ code, name, dir, isDefault, t: tr, missing, status, rout
   const slugShown = tr.slug || (autoSlug ? slugPreview(tr.title) : "")
   const miss = (k: string) => (missing.includes(k) ? <Badge size="2xsmall" color="orange" className="ml-2">{t("blogSeo.required")}</Badge> : null)
   return (
-    <div className="flex flex-col gap-4" dir={dir}>
-      <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-col gap-4" dir={dir} data-bseo={`editor-${code}`}>
+      <div className="flex flex-wrap items-center gap-2">
         <Text weight="plus">{name}</Text>
         <Badge size="2xsmall" color="grey">{code}</Badge>
         {isDefault && <Badge size="2xsmall" color="blue">{t("blogSeo.defaultLocale")}</Badge>}
         {!missing.length ? <Badge size="2xsmall" color="green">{t("blogSeo.complete")}</Badge> : <Badge size="2xsmall" color="orange">{t("blogSeo.missingFields", { fields: missing.map((m) => t(`blogSeo.fields.${m}`)).join(", ") })}</Badge>}
       </div>
       <Field label={t("blogSeo.fields.title")} count={`${tr.title.length}/160`}>
-        <Input maxLength={160} value={tr.title} onChange={(e) => onChange({ title: e.target.value })} style={{ height: 44 }} />
+        <Input maxLength={160} value={tr.title} onChange={(e) => onChange({ title: e.target.value })} style={{ height: 44 }} data-bseo={`title-${code}`} />
         {miss("title")}
       </Field>
       <Field label={t("blogSeo.fields.slug")} hint={status === "draft" ? (autoSlug ? t("blogSeo.fields.slugFollowsTitle") : t("blogSeo.fields.slugManual")) : t("blogSeo.fields.slugRedirect")}>
-        <div className="flex items-center gap-2">
-          <Text size="xsmall" className="text-ui-fg-muted font-mono whitespace-nowrap" dir="ltr">{routing.prefix}{routing.base}/</Text>
-          <Input maxLength={80} value={slugShown} autoCapitalize="none" spellCheck={false} dir="ltr" placeholder={t("blogSeo.fields.slugAuto")}
-            onChange={(e) => { setAutoSlug(false); onChange({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-") }) }} style={{ height: 44 }} />
-          {status === "draft" && !autoSlug && <Button type="button" variant="secondary" style={{ minHeight: 40 }} onClick={() => { setAutoSlug(true); onChange({ slug: "" }) }}>{t("blogSeo.fields.slugReset")}</Button>}
+        <div className="flex w-full items-center gap-2" dir="ltr">
+          <Text size="xsmall" className="text-ui-fg-muted shrink-0 font-mono whitespace-nowrap">{routing.prefix}{routing.base}/</Text>
+          <div className="min-w-0 flex-1">{/* Medusa's Input sits in a plain div: the wrapper takes the room */}
+            <Input className="w-full" maxLength={80} value={slugShown} autoCapitalize="none" spellCheck={false} placeholder={t("blogSeo.fields.slugAuto")} data-bseo={`slug-${code}`}
+              onChange={(e) => { setAutoSlug(false); onChange({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-") }) }} style={{ height: 44 }} />
+          </div>
+          {status === "draft" && !autoSlug && <Button type="button" variant="secondary" className="shrink-0" style={{ minHeight: 40 }} onClick={() => { setAutoSlug(true); onChange({ slug: "" }) }}>{t("blogSeo.fields.slugReset")}</Button>}
         </div>
       </Field>
       <Field label={t("blogSeo.fields.excerpt")} count={`${tr.excerpt.length}/300`} hint={t("blogSeo.fields.excerptHint")}>
@@ -82,6 +85,7 @@ const PostEditor = () => {
   const { data: config } = useQuery({ queryKey: CONFIG_KEY, queryFn: api.config, staleTime: 300_000 })
   const post = data?.post
 
+  const routingFor = (code: string) => ({ base: settings?.routing.base ?? "/blog", prefix: settings?.routing.locales[code]?.prefix ?? (code === defaultLocale ? "" : `/${code}`) })
   const [fields, setFields] = useState<PostFields | null>(null)
   const saved = useRef<PostFields | null>(null)
   const [autoSlug, setAutoSlugState] = useState<Record<string, boolean>>({})
@@ -159,8 +163,25 @@ const PostEditor = () => {
   }, [saving])
 
   const dirty = !!fields && !!saved.current && !isEmptyPatch(changedFields(fields, saved.current))
+  const unsaved = dirty || saving === "pending" || saving === "saving"
+  // leaving the page with changes: drafts are flushed first, other posts ask
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => unsaved && currentLocation.pathname !== nextLocation.pathname)
+  useEffect(() => {
+    if (blocker.state !== "blocked") return
+    if (autosave) { void flush().then((ok) => (ok ? blocker.proceed() : blocker.reset())); return }
+    void prompt({ title: t("blogSeo.autosave.leaveTitle"), description: t("blogSeo.autosave.leave"), confirmText: t("blogSeo.autosave.leaveConfirm"), cancelText: t("blogSeo.cancel") }).then((ok) => (ok ? blocker.proceed() : blocker.reset()))
+  }, [blocker.state])
+  /** Slugs of a published post that are about to change: ask first (the old address becomes a permanent redirect) */
+  const confirmSlugChanges = async () => {
+    if (!fields || !saved.current || post?.status !== "published") return true
+    const changes = codes.filter((c) => fields.translations[c]?.slug && saved.current!.translations[c]?.slug && fields.translations[c].slug !== saved.current!.translations[c].slug)
+    if (!changes.length) return true
+    const lines = changes.map((c) => { const r = routingFor(c); return t("blogSeo.slugChange.line", { from: `${r.prefix}${r.base}/${saved.current!.translations[c].slug}`, to: `${r.prefix}${r.base}/${fields.translations[c].slug}` }) })
+    return prompt({ title: t("blogSeo.slugChange.title"), description: `${t("blogSeo.slugChange.text")}\n\n${lines.join("\n")}`, confirmText: t("blogSeo.save"), cancelText: t("blogSeo.cancel") })
+  }
   const act = useMutation({
     mutationFn: async ({ kind, at }: { kind: "publish" | "unpublish" | "rotate" | "save"; at?: string | null }) => {
+      if (!(await confirmSlugChanges())) throw new Error("save_failed")
       if (!(await flush())) throw new Error("save_failed")
       if (kind === "publish") return api.publishPost(id, at)
       if (kind === "unpublish") return api.unpublishPost(id)
@@ -196,18 +217,19 @@ const PostEditor = () => {
   const { data: products } = useQuery({ queryKey: [...POSTS_KEY, "products", productIds.join(",")], queryFn: () => productsById(productIds), enabled: productIds.length > 0 })
   const catName = (c: { translations: Record<string, { name: string }> }) => c.translations[defaultLocale]?.name ?? Object.values(c.translations)[0]?.name ?? ""
   const completeness = useMemo(() => Object.fromEntries((post?.completeness.locales ?? []).map((x) => [x.locale, x.missing as string[]])), [post])
-  const routingFor = (code: string) => ({ base: settings?.routing.base ?? "/blog", prefix: settings?.routing.locales[code]?.prefix ?? (code === defaultLocale ? "" : `/${code}`) })
 
   if (isError) return <Container className="px-6 py-6"><Text size="small" className="text-ui-fg-error">{t("blogSeo.loadError")}</Text></Container>
   if (isLoading || !post || !fields || !settings) return <Container className="px-6 py-6"><Text size="small" className="text-ui-fg-subtle">{t("blogSeo.loading")}</Text></Container>
 
-  const shown = split ? Array.from(new Set([active, defaultLocale])).filter((c) => codes.includes(c)) : [active]
+  const others = codes.filter((c) => c !== defaultLocale)
+  const splitOn = split && others.length > 0
+  const editing = splitOn && active === defaultLocale ? others[0] : active
   const statusLine = post.status === "published" ? t("blogSeo.publishedAt", { date: formatDateTime(post.published_at, l) }) : post.status === "scheduled" ? t("blogSeo.scheduledFor", { date: formatDateTime(post.published_at, l) }) : t("blogSeo.changedAt", { date: formatDateTime(post.updated_at, l) })
   const saveLabel = saving === "saving" ? t("blogSeo.autosave.saving") : saving === "pending" ? (autosave ? t("blogSeo.autosave.pending") : t("blogSeo.autosave.unsaved")) : saving === "error" ? t("blogSeo.autosave.error") : saving === "saved" ? t("blogSeo.autosave.saved") : ""
 
   return (
     <div className="flex flex-col gap-y-3">
-      <Link to="/blog-seo" className="txt-compact-small text-ui-fg-subtle flex items-center gap-1" style={{ minHeight: 32 }} onClick={(e) => { if (dirty && !autosave && !window.confirm(t("blogSeo.autosave.leave"))) e.preventDefault() }}>← Blog</Link>
+      <Link to="/blog-seo" className="txt-compact-small text-ui-fg-subtle flex items-center gap-1" style={{ minHeight: 32 }}>← Blog</Link>
 
       <Container className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
         <div className="min-w-0">
@@ -215,11 +237,12 @@ const PostEditor = () => {
             <Heading className="truncate">{fields.translations[defaultLocale]?.title || Object.values(fields.translations).find((x) => x.title)?.title || t("blogSeo.untitled")}</Heading>
             <Badge size="2xsmall" color={STATUS_COLOR[post.status]}>{t(`blogSeo.status.${post.status}`)}</Badge>
             {!post.completeness.publishable && <Badge size="2xsmall" color="orange">{t("blogSeo.incomplete")}</Badge>}
+            {unsaved && !autosave && <Badge size="2xsmall" color="orange" data-bseo="unsaved">{t("blogSeo.autosave.unsaved")}</Badge>}
           </div>
-          <Text size="xsmall" className="text-ui-fg-muted mt-1">{statusLine}{saveLabel ? ` · ${saveLabel}` : ""}</Text>
+          <Text size="xsmall" className="text-ui-fg-muted mt-1" data-bseo="save-state">{statusLine}{saveLabel ? ` · ${saveLabel}` : ""}</Text>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!autosave && <Button variant="secondary" style={{ minHeight: 40 }} disabled={!dirty} isLoading={act.isPending && act.variables?.kind === "save"} onClick={() => act.mutate({ kind: "save" })}>{t("blogSeo.save")}</Button>}
+          {!autosave && <Button variant={dirty ? "primary" : "secondary"} style={{ minHeight: 40 }} disabled={!dirty} isLoading={act.isPending && act.variables?.kind === "save"} onClick={() => act.mutate({ kind: "save" })} data-bseo="save">{t("blogSeo.save")}</Button>}
           {post.status !== "published" && <Button style={{ minHeight: 40 }} isLoading={act.isPending && act.variables?.kind === "publish" && !act.variables.at} disabled={!post.completeness.publishable && !dirty} onClick={() => act.mutate({ kind: "publish", at: null })}>{t("blogSeo.publishNow")}</Button>}
           {post.status !== "draft" && <Button variant="secondary" style={{ minHeight: 40 }} isLoading={act.isPending && act.variables?.kind === "unpublish"} onClick={() => act.mutate({ kind: "unpublish" })}>{post.status === "scheduled" ? t("blogSeo.cancelSchedule") : t("blogSeo.unpublish")}</Button>}
           <Button variant="danger" style={{ minHeight: 40 }} isLoading={del.isPending} onClick={askDelete}>{t("blogSeo.delete")}</Button>
@@ -243,26 +266,25 @@ const PostEditor = () => {
             {locales.map((x) => {
               const missing = completeness[x.code] ?? ["title", "excerpt", "body"]
               return (
-                <button key={x.code} type="button" style={{ minHeight: 40 }} className={`flex items-center gap-2 rounded-md border px-3 ${active === x.code ? "border-ui-fg-base bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`} onClick={() => setActive(x.code)}>
+                <button key={x.code} type="button" style={{ minHeight: 40 }} className={`flex items-center gap-2 rounded-md border px-3 ${editing === x.code ? "border-ui-fg-base bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`} onClick={() => setActive(x.code)} data-bseo={`tab-${x.code}`}>
                   <Text size="small" weight="plus">{x.name}</Text>
-                  <span className={`inline-block size-2 rounded-full ${missing.length ? "bg-ui-tag-orange-icon" : "bg-ui-tag-green-icon"}`} title={missing.length ? t("blogSeo.localeIncomplete", { locale: x.name }) : t("blogSeo.localeComplete", { locale: x.name })} />
+                  <Badge size="2xsmall" color={missing.length ? "orange" : "green"}>{!missing.length ? t("blogSeo.complete") : completeness[x.code]?.length === 4 || !completeness[x.code] ? t("blogSeo.localeMissing") : t("blogSeo.incomplete")}</Badge>
                 </button>
               )
             })}
             {locales.length > 1 && (
               <label className="ml-auto flex items-center gap-2" style={{ minHeight: 40 }}>
-                <Switch checked={split} onCheckedChange={setSplit} />
+                <Switch checked={split} onCheckedChange={setSplit} data-bseo="split" />
                 <Text size="xsmall">{t("blogSeo.sideBySide")}</Text>
               </label>
             )}
           </div>
-          <div className={`grid gap-6 ${shown.length > 1 ? "xl:grid-cols-2" : ""}`}>
-            {shown.map((code) => {
-              const x = locales.find((y) => y.code === code)!
-              return (
-                <LocaleEditor key={code} code={code} name={x.name} dir={x.dir} isDefault={code === defaultLocale} t={fields.translations[code]} missing={completeness[code] ?? []} status={post.status} routing={routingFor(code)} onChange={(p) => updateT(code, p)} autoSlug={!!autoSlug[code]} setAutoSlug={(v) => setAutoSlug(code, v)} />
-              )
-            })}
+          <div className={`grid gap-6 ${splitOn ? "lg:grid-cols-2" : ""}`} data-bseo={splitOn ? "split-on" : "split-off"}>
+            {splitOn && (() => { const d = locales.find((y) => y.code === defaultLocale)!; return <LocaleReadOnly key={`ro-${defaultLocale}`} code={defaultLocale} name={d.name} dir={d.dir} t={fields.translations[defaultLocale]} /> })()}
+            {(() => {
+              const x = locales.find((y) => y.code === editing)!
+              return <LocaleEditor key={editing} code={editing} name={x.name} dir={x.dir} isDefault={editing === defaultLocale} t={fields.translations[editing]} missing={completeness[editing] ?? []} status={post.status} routing={routingFor(editing)} onChange={(p) => updateT(editing, p)} autoSlug={!!autoSlug[editing]} setAutoSlug={(v) => setAutoSlug(editing, v)} />
+            })()}
           </div>
         </Container>
 

@@ -96,7 +96,7 @@ const BlogPage = () => {
             </Select.Content>
           </Select>
           <Select value={missing || "all"} onValueChange={(v) => setFilter({ missing: v === "all" ? null : v })}>
-            <Select.Trigger style={{ height: 44 }} aria-label={t("blogSeo.filters.missing")}><Select.Value /></Select.Trigger>
+            <Select.Trigger style={{ height: 44 }} aria-label={t("blogSeo.filters.missing")} data-bseo="filter-missing"><Select.Value /></Select.Trigger>
             <Select.Content>
               <Select.Item value="all">{t("blogSeo.filters.anyTranslation")}</Select.Item>
               {locales.map((x) => <Select.Item key={x.code} value={x.code}>{t("blogSeo.filters.missingIn", { locale: x.name })}</Select.Item>)}
@@ -115,10 +115,9 @@ const BlogPage = () => {
             {data.posts.map((p) => {
               const title = postTitle(p, defaultLocale, t("blogSeo.untitled"))
               const when = p.status === "published" ? t("blogSeo.publishedAt", { date: formatDateTime(p.published_at, l) }) : p.status === "scheduled" ? t("blogSeo.scheduledFor", { date: formatDateTime(p.published_at, l) }) : t("blogSeo.changedAt", { date: formatDateTime(p.updated_at, l) })
-              const incomplete = p.completeness.locales.filter((x) => x.missing.length).map((x) => x.locale)
               return (
                 <li key={p.id}>
-                  <Link to={`/blog-seo/${p.id}`} className="hover:bg-ui-bg-base-hover flex items-center gap-3 px-6 py-3" style={{ minHeight: 72 }}>
+                  <Link to={`/blog-seo/${p.id}`} className="hover:bg-ui-bg-base-hover flex items-center gap-3 px-6 py-3" style={{ minHeight: 72 }} data-bseo="post-row" data-post-id={p.id}>
                     <span className="bg-ui-bg-subtle flex-none overflow-hidden rounded-md border" style={{ width: 56, height: 56 }}>
                       {p.cover ? <img src={p.cover} alt="" loading="lazy" className="size-full object-cover" /> : null}
                     </span>
@@ -128,11 +127,15 @@ const BlogPage = () => {
                         <Badge size="2xsmall" color={STATUS_COLOR[p.status]}>{t(`blogSeo.status.${p.status}`)}</Badge>
                         {!p.completeness.publishable && <Badge size="2xsmall" color="orange">{t("blogSeo.incomplete")}</Badge>}
                         {p.featured && <Badge size="2xsmall" color="blue">{t("blogSeo.featured")}</Badge>}
-                        {locales.map((x) => (
-                          <Badge key={x.code} size="2xsmall" color={incomplete.includes(x.code) ? "grey" : "green"} title={incomplete.includes(x.code) ? t("blogSeo.localeIncomplete", { locale: x.name }) : t("blogSeo.localeComplete", { locale: x.name })}>
-                            {x.code}
-                          </Badge>
-                        ))}
+                        {locales.map((x) => {
+                          const c = p.completeness.locales.find((y) => y.locale === x.code)
+                          const state = !c || !c.present ? "missing" : c.missing.length ? "incomplete" : "complete"
+                          return (
+                            <Badge key={x.code} size="2xsmall" color={state === "complete" ? "green" : "orange"} title={state === "complete" ? t("blogSeo.localeComplete", { locale: x.name }) : t("blogSeo.localeIncomplete", { locale: x.name })} data-bseo={`locale-${x.code}-${state}`}>
+                              {x.code.toUpperCase()} {state === "complete" ? "✓" : state === "missing" ? t("blogSeo.localeMissing") : t("blogSeo.incomplete")}
+                            </Badge>
+                          )
+                        })}
                       </span>
                       <Text size="xsmall" className="text-ui-fg-muted truncate">{when}</Text>
                     </span>

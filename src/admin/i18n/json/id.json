@@ -3,10 +3,25 @@
     "title": "Blog",
     "description": "Artikel dalam {{locales}}. Draf tersimpan otomatis; tulisan terbit tersimpan saat kamu menekan Simpan.",
     "newPost": "Tulisan baru",
-    "nav": { "categories": "Kategori", "authors": "Penulis", "settings": "Pengaturan" },
+    "nav": {
+      "categories": "Kategori",
+      "authors": "Penulis",
+      "settings": "Pengaturan"
+    },
     "search": "Cari judul, ringkasan, atau teks…",
-    "status": { "all": "Semua", "draft": "Draf", "scheduled": "Terjadwal", "published": "Terbit" },
-    "filters": { "allCategories": "Semua kategori", "noCategory": "Tanpa kategori", "missing": "Terjemahan", "anyTranslation": "Semua terjemahan", "missingIn": "Belum ada {{locale}}" },
+    "status": {
+      "all": "Semua",
+      "draft": "Draf",
+      "scheduled": "Terjadwal",
+      "published": "Terbit"
+    },
+    "filters": {
+      "allCategories": "Semua kategori",
+      "noCategory": "Tanpa kategori",
+      "missing": "Terjemahan",
+      "anyTranslation": "Semua terjemahan",
+      "missingIn": "Belum ada {{locale}}"
+    },
     "empty": "Belum ada tulisan. Tekan “Tulisan baru” untuk mulai.",
     "emptyFiltered": "Tidak ada tulisan yang cocok dengan filter ini.",
     "untitled": "Tanpa judul",
@@ -79,12 +94,57 @@
       "ogImage": "Gambar berbagi (1200×630)",
       "ogImageHint": "Kosong: memakai sampul."
     },
-    "autosave": { "saving": "Menyimpan…", "pending": "Ada perubahan belum tersimpan", "unsaved": "Belum tersimpan (tekan Simpan)", "saved": "Tersimpan", "error": "Gagal menyimpan", "leave": "Ada perubahan belum tersimpan. Tetap keluar?" },
-    "toast": { "saved": "Tersimpan", "published": "Terbit", "scheduled": "Dijadwalkan {{date}}", "unpublished": "Kembali jadi draf", "rotated": "Tautan pratinjau diperbarui", "deleted": "Tulisan dihapus" },
-    "schedule": { "title": "Jadwal", "hint": "Waktu mengikuti zona waktumu ({{tz}}).", "set": "Jadwalkan", "change": "Ubah waktu", "past": "Pilih waktu di masa depan." },
-    "preview": { "title": "Pratinjau", "open": "Pratinjau", "public": "Halaman publik", "noStorefront": "Isi opsi plugin storefrontUrl supaya tautannya lengkap.", "rotate": "Perbarui tautan pratinjau", "rotateHint": "Tautan pratinjau lama berhenti bekerja." },
-    "products": { "related": "Produk terkait", "relatedHint": "Tampil di bawah tulisan. Maksimal 12.", "add": "Tambah produk", "pick": "Pilih produk", "search": "Cari produk…", "none": "Produk tidak ditemukan.", "live": "Terbit", "draft": "Draf" },
-    "upload": { "none": "Belum ada gambar", "choose": "Pilih gambar", "replace": "Ganti", "remove": "Hapus", "notImage": "Berkas itu bukan gambar.", "tooLarge": "Gambar terlalu besar." },
+    "autosave": {
+      "saving": "Menyimpan…",
+      "pending": "Ada perubahan belum tersimpan",
+      "unsaved": "Belum tersimpan (tekan Simpan)",
+      "saved": "Tersimpan",
+      "error": "Gagal menyimpan",
+      "leave": "Ada perubahan belum tersimpan. Tetap keluar?",
+      "leaveTitle": "Ada perubahan belum tersimpan",
+      "leaveConfirm": "Keluar tanpa menyimpan"
+    },
+    "toast": {
+      "saved": "Tersimpan",
+      "published": "Terbit",
+      "scheduled": "Dijadwalkan {{date}}",
+      "unpublished": "Kembali jadi draf",
+      "rotated": "Tautan pratinjau diperbarui",
+      "deleted": "Tulisan dihapus"
+    },
+    "schedule": {
+      "title": "Jadwal",
+      "hint": "Waktu mengikuti zona waktumu ({{tz}}).",
+      "set": "Jadwalkan",
+      "change": "Ubah waktu",
+      "past": "Pilih waktu di masa depan."
+    },
+    "preview": {
+      "title": "Pratinjau",
+      "open": "Pratinjau",
+      "public": "Halaman publik",
+      "noStorefront": "Isi opsi plugin storefrontUrl supaya tautannya lengkap.",
+      "rotate": "Perbarui tautan pratinjau",
+      "rotateHint": "Tautan pratinjau lama berhenti bekerja."
+    },
+    "products": {
+      "related": "Produk terkait",
+      "relatedHint": "Tampil di bawah tulisan. Maksimal 12.",
+      "add": "Tambah produk",
+      "pick": "Pilih produk",
+      "search": "Cari produk…",
+      "none": "Produk tidak ditemukan.",
+      "live": "Terbit",
+      "draft": "Draf"
+    },
+    "upload": {
+      "none": "Belum ada gambar",
+      "choose": "Pilih gambar",
+      "replace": "Ganti",
+      "remove": "Hapus",
+      "notImage": "Berkas itu bukan gambar.",
+      "tooLarge": "Gambar terlalu besar."
+    },
     "editor": {
       "placeholder": "Tulis…",
       "help": "Tempel tautan atau alamat YouTube langsung ke dalam teks.",
@@ -104,11 +164,39 @@
       "insert": "Sisipkan",
       "unlink": "Hapus tautan",
       "tools": {
-        "h2": "Judul bagian (H2)", "h3": "Sub-judul (H3)", "bold": "Tebal", "italic": "Miring", "list": "Daftar", "bullet": "Daftar poin", "ordered": "Daftar bernomor", "quote": "Kutipan", "link": "Tautan",
-        "uploading": "Mengunggah…", "photo": "Foto", "photoTitle": "Sisipkan foto", "product": "Produk", "productTitle": "Sisipkan kartu produk", "youtubeTitle": "Sisipkan video YouTube",
-        "qa": "Tanya-jawab", "qaTitle": "Sisipkan pertanyaan dan jawaban (FAQ)", "table": "Tabel", "tableTitle": "Sisipkan tabel", "undo": "Urungkan", "redo": "Ulangi",
-        "tableTools": "Tabel", "row": "Baris", "column": "Kolom", "addRow": "Tambah baris", "deleteRow": "Hapus baris", "addColumn": "Tambah kolom", "deleteColumn": "Hapus kolom",
-        "headerRow": "Kepala", "headerRowTitle": "Jadikan baris kepala", "merge": "Gabung", "mergeTitle": "Gabung atau pisah sel", "deleteTable": "Hapus tabel"
+        "h2": "Judul bagian (H2)",
+        "h3": "Sub-judul (H3)",
+        "bold": "Tebal",
+        "italic": "Miring",
+        "list": "Daftar",
+        "bullet": "Daftar poin",
+        "ordered": "Daftar bernomor",
+        "quote": "Kutipan",
+        "link": "Tautan",
+        "uploading": "Mengunggah…",
+        "photo": "Foto",
+        "photoTitle": "Sisipkan foto",
+        "product": "Produk",
+        "productTitle": "Sisipkan kartu produk",
+        "youtubeTitle": "Sisipkan video YouTube",
+        "qa": "Tanya-jawab",
+        "qaTitle": "Sisipkan pertanyaan dan jawaban (FAQ)",
+        "table": "Tabel",
+        "tableTitle": "Sisipkan tabel",
+        "undo": "Urungkan",
+        "redo": "Ulangi",
+        "tableTools": "Tabel",
+        "row": "Baris",
+        "column": "Kolom",
+        "addRow": "Tambah baris",
+        "deleteRow": "Hapus baris",
+        "addColumn": "Tambah kolom",
+        "deleteColumn": "Hapus kolom",
+        "headerRow": "Kepala",
+        "headerRowTitle": "Jadikan baris kepala",
+        "merge": "Gabung",
+        "mergeTitle": "Gabung atau pisah sel",
+        "deleteTable": "Hapus tabel"
       }
     },
     "categories": {
@@ -163,8 +251,16 @@
       "defaultLocale": "Bahasa utama",
       "defaultLocaleHelp": "Wajib untuk setiap tulisan; bahasa lain jatuh ke bahasa ini.",
       "fallback": "Terjemahan belum ada",
-      "fallbackMode": { "default": "Tampilkan bahasa utama", "label": "Tampilkan bahasa utama dengan catatan", "hide": "Sembunyikan tulisan" },
-      "fallbackHelp": { "default": "Pembaca melihat teks bahasa utama di alamat bahasa itu.", "label": "Sama, dan toko bisa menampilkan “belum diterjemahkan”.", "hide": "Tulisan hanya muncul di bahasa yang terjemahannya lengkap." },
+      "fallbackMode": {
+        "default": "Tampilkan bahasa utama",
+        "label": "Tampilkan bahasa utama dengan catatan",
+        "hide": "Sembunyikan tulisan"
+      },
+      "fallbackHelp": {
+        "default": "Pembaca melihat teks bahasa utama di alamat bahasa itu.",
+        "label": "Sama, dan toko bisa menampilkan “belum diterjemahkan”.",
+        "hide": "Tulisan hanya muncul di bahasa yang terjemahannya lengkap."
+      },
       "routing": "Jalur storefront",
       "routingHelp": "Diatur di opsi plugin (routing): jalur dasar, prefix per bahasa, segmen kategori dan feed.",
       "imageOrigins": "Host gambar yang diizinkan",
@@ -182,6 +278,16 @@
       "invalid": "Ada isian yang tidak valid.",
       "locked": "Pengaturan ini dikunci lewat opsi plugin."
     },
-    "credit": { "text": "Plugin Blog SEO oleh Haus Kayu", "help": "Bantuan" }
+    "credit": {
+      "text": "Plugin Blog SEO oleh Haus Kayu",
+      "help": "Bantuan"
+    },
+    "localeMissing": "belum ada",
+    "readOnly": "hanya baca",
+    "slugChange": {
+      "title": "Ubah alamat?",
+      "text": "Tulisan ini sudah publik. Alamat lama akan dialihkan permanen (301) ke alamat baru:",
+      "line": "{{from}} → {{to}}"
+    }
   }
 }

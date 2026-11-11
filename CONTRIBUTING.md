@@ -45,7 +45,20 @@ npm run build && npm run test:e2e
 `BSEO_ADMIN=1 BSEO_KEEP=1 npm run test:e2e` builds the Admin too and keeps the server running on
 http://127.0.0.1:9700/app (login `admin@e2e.test` / `e2e-password-123`) to look at the Blog pages.
 `BSEO_NO_SHARP=1` runs the upload checks without image processing; `BSEO_LOCK=1` starts the app with locales
-fixed in the plugin options.
+fixed in the plugin options; `BSEO_CREDIT=1` turns `showCredit` on (the checks do; the default is off).
+
+To click through the Admin with sample content instead of the test data:
+
+```bash
+BSEO_ADMIN=1 BSEO_SERVE=1 node integration-tests/e2e.mjs     # fresh database, no checks, server kept on 9700
+node integration-tests/seed-demo.mjs                         # id + en: one published, one scheduled, one draft
+BSEO_ADMIN=1 BSEO_SERVE=1 BSEO_KEEP_DB=1 node integration-tests/e2e.mjs   # restart on the same data after a rebuild
+```
+
+`integration-tests/admin-browser.mjs` drives that app in headless Chrome (missing-translation badges and filter,
+side-by-side view, draft autosave, unsaved indicator and leave confirmation, slug change confirmation → 301). It
+needs puppeteer, which is not a dependency: `PUPPETEER_DIR=/folder/with/node_modules/puppeteer node
+integration-tests/admin-browser.mjs`. Not part of CI.
 
 The suite removes its own folders (`integration-tests/.state`, `app/static`, `app/private`, `app/node_modules`,
 the built server's `node_modules`) through one guarded function that refuses any path outside

@@ -10,7 +10,8 @@
 // BSEO_PG_CONTAINER: name of the Postgres container (default rw-spike-pg). BSEO_KEEP=1 keeps the server running
 // after the checks; BSEO_SERVE=1 skips the checks and only starts the (empty) app, e.g. with BSEO_ADMIN=1 to click
 // through the Admin (then integration-tests/seed-demo.mjs fills in sample content). BSEO_CREDIT=1 turns the
-// plugin's showCredit option on (the checks do; the default is off, as in the plugin).
+// plugin's showCredit option on (the checks do; the default is off, as in the plugin). BSEO_KEEP_DB=1 (with
+// BSEO_SERVE=1) restarts on the existing database and uploads instead of a fresh one.
 // BSEO_NO_SHARP=1 runs the upload checks without image processing. Every medusa command goes through
 // scripts/guard.mjs (rw-spike-* containers and ports 9700+ only).
 import { spawn, spawnSync } from "node:child_process"
@@ -37,6 +38,7 @@ const ADMIN = { email: "admin@e2e.test", password: "e2e-password-123" }
 const NO_SHARP = process.env.BSEO_NO_SHARP === "1"
 const SERVE = process.env.BSEO_SERVE === "1"
 const KEEP = SERVE || process.env.BSEO_KEEP === "1"
+const KEEP_DB = SERVE && process.env.BSEO_KEEP_DB === "1"
 
 const env = {
   ...process.env,
@@ -567,15 +569,19 @@ async function main() {
   if (!fs.existsSync(path.join(PLUGIN_DIR, ".medusa/server/src/modules/blog-seo/index.js"))) {
     throw new Error("Build the plugin first: npm run build")
   }
-  rmGuarded(STATE_DIR)
+  if (!KEEP_DB) {
+    rmGuarded(STATE_DIR)
+    for (const d of ["private", "static"]) rmGuarded(path.join(APP_DIR, d))
+  }
   fs.mkdirSync(STATE_DIR, { recursive: true })
-  for (const d of ["private", "static"]) rmGuarded(path.join(APP_DIR, d))
   linkNodeModules()
   await waitForPostgres()
-  psql(`DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE)`)
-  psql(`CREATE DATABASE ${DB_NAME}`)
+  if (!KEEP_DB) {
+    psql(`DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE)`)
+    psql(`CREATE DATABASE ${DB_NAME}`)
+  }
   guarded("db:migrate")
-  guarded("user", "-e", ADMIN.email, "-p", ADMIN.password)
+  if (!KEEP_DB) guarded("user", "-e", ADMIN.email, "-p", ADMIN.password)
 
   let serverDir = APP_DIR
   if (process.env.BSEO_ADMIN === "1") {

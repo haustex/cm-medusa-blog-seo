@@ -3,10 +3,25 @@
     "title": "Blog",
     "description": "Articles in {{locales}}. Drafts save by themselves; published posts save when you press Save.",
     "newPost": "New post",
-    "nav": { "categories": "Categories", "authors": "Authors", "settings": "Settings" },
+    "nav": {
+      "categories": "Categories",
+      "authors": "Authors",
+      "settings": "Settings"
+    },
     "search": "Search title, excerpt or text…",
-    "status": { "all": "All", "draft": "Draft", "scheduled": "Scheduled", "published": "Published" },
-    "filters": { "allCategories": "All categories", "noCategory": "No category", "missing": "Translation", "anyTranslation": "Any translation", "missingIn": "Missing in {{locale}}" },
+    "status": {
+      "all": "All",
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "published": "Published"
+    },
+    "filters": {
+      "allCategories": "All categories",
+      "noCategory": "No category",
+      "missing": "Translation",
+      "anyTranslation": "Any translation",
+      "missingIn": "Missing in {{locale}}"
+    },
     "empty": "No posts yet. Press “New post” to write the first one.",
     "emptyFiltered": "No posts match these filters.",
     "untitled": "Untitled",
@@ -79,12 +94,57 @@
       "ogImage": "Sharing image (1200×630)",
       "ogImageHint": "Empty: the cover is used."
     },
-    "autosave": { "saving": "Saving…", "pending": "Unsaved changes", "unsaved": "Unsaved changes (press Save)", "saved": "Saved", "error": "Could not save", "leave": "There are unsaved changes. Leave anyway?" },
-    "toast": { "saved": "Saved", "published": "Published", "scheduled": "Scheduled for {{date}}", "unpublished": "Back to draft", "rotated": "Preview link renewed", "deleted": "Post deleted" },
-    "schedule": { "title": "Schedule", "hint": "Time in your time zone ({{tz}}).", "set": "Schedule", "change": "Change time", "past": "Pick a time in the future." },
-    "preview": { "title": "Preview", "open": "Preview", "public": "Public page", "noStorefront": "Set the plugin option storefrontUrl to get full links.", "rotate": "Renew preview link", "rotateHint": "The old preview link stops working." },
-    "products": { "related": "Related products", "relatedHint": "Shown under the post. Up to 12.", "add": "Add product", "pick": "Pick a product", "search": "Search products…", "none": "No products found.", "live": "Published", "draft": "Draft" },
-    "upload": { "none": "No image", "choose": "Choose image", "replace": "Replace", "remove": "Remove", "notImage": "That file is not an image.", "tooLarge": "The image is too large." },
+    "autosave": {
+      "saving": "Saving…",
+      "pending": "Unsaved changes",
+      "unsaved": "Unsaved changes (press Save)",
+      "saved": "Saved",
+      "error": "Could not save",
+      "leave": "There are unsaved changes. Leave anyway?",
+      "leaveTitle": "Unsaved changes",
+      "leaveConfirm": "Leave without saving"
+    },
+    "toast": {
+      "saved": "Saved",
+      "published": "Published",
+      "scheduled": "Scheduled for {{date}}",
+      "unpublished": "Back to draft",
+      "rotated": "Preview link renewed",
+      "deleted": "Post deleted"
+    },
+    "schedule": {
+      "title": "Schedule",
+      "hint": "Time in your time zone ({{tz}}).",
+      "set": "Schedule",
+      "change": "Change time",
+      "past": "Pick a time in the future."
+    },
+    "preview": {
+      "title": "Preview",
+      "open": "Preview",
+      "public": "Public page",
+      "noStorefront": "Set the plugin option storefrontUrl to get full links.",
+      "rotate": "Renew preview link",
+      "rotateHint": "The old preview link stops working."
+    },
+    "products": {
+      "related": "Related products",
+      "relatedHint": "Shown under the post. Up to 12.",
+      "add": "Add product",
+      "pick": "Pick a product",
+      "search": "Search products…",
+      "none": "No products found.",
+      "live": "Published",
+      "draft": "Draft"
+    },
+    "upload": {
+      "none": "No image",
+      "choose": "Choose image",
+      "replace": "Replace",
+      "remove": "Remove",
+      "notImage": "That file is not an image.",
+      "tooLarge": "The image is too large."
+    },
     "editor": {
       "placeholder": "Write…",
       "help": "Paste a link or a YouTube address directly into the text.",
@@ -104,11 +164,39 @@
       "insert": "Insert",
       "unlink": "Remove link",
       "tools": {
-        "h2": "Heading (H2)", "h3": "Sub-heading (H3)", "bold": "Bold", "italic": "Italic", "list": "List", "bullet": "Bullet list", "ordered": "Numbered list", "quote": "Quote", "link": "Link",
-        "uploading": "Uploading…", "photo": "Photo", "photoTitle": "Insert a photo", "product": "Product", "productTitle": "Insert a product card", "youtubeTitle": "Insert a YouTube video",
-        "qa": "Q&A", "qaTitle": "Insert a question and answer (FAQ)", "table": "Table", "tableTitle": "Insert a table", "undo": "Undo", "redo": "Redo",
-        "tableTools": "Table", "row": "Row", "column": "Column", "addRow": "Add row", "deleteRow": "Delete row", "addColumn": "Add column", "deleteColumn": "Delete column",
-        "headerRow": "Header", "headerRowTitle": "Toggle header row", "merge": "Merge", "mergeTitle": "Merge or split cells", "deleteTable": "Delete table"
+        "h2": "Heading (H2)",
+        "h3": "Sub-heading (H3)",
+        "bold": "Bold",
+        "italic": "Italic",
+        "list": "List",
+        "bullet": "Bullet list",
+        "ordered": "Numbered list",
+        "quote": "Quote",
+        "link": "Link",
+        "uploading": "Uploading…",
+        "photo": "Photo",
+        "photoTitle": "Insert a photo",
+        "product": "Product",
+        "productTitle": "Insert a product card",
+        "youtubeTitle": "Insert a YouTube video",
+        "qa": "Q&A",
+        "qaTitle": "Insert a question and answer (FAQ)",
+        "table": "Table",
+        "tableTitle": "Insert a table",
+        "undo": "Undo",
+        "redo": "Redo",
+        "tableTools": "Table",
+        "row": "Row",
+        "column": "Column",
+        "addRow": "Add row",
+        "deleteRow": "Delete row",
+        "addColumn": "Add column",
+        "deleteColumn": "Delete column",
+        "headerRow": "Header",
+        "headerRowTitle": "Toggle header row",
+        "merge": "Merge",
+        "mergeTitle": "Merge or split cells",
+        "deleteTable": "Delete table"
       }
     },
     "categories": {
@@ -163,8 +251,16 @@
       "defaultLocale": "Default language",
       "defaultLocaleHelp": "Required for every post; other languages fall back to it.",
       "fallback": "Missing translation",
-      "fallbackMode": { "default": "Show the default language", "label": "Show the default language with a note", "hide": "Hide the post" },
-      "fallbackHelp": { "default": "Readers see the default-language text at that language's address.", "label": "Same, and the store can show “not yet translated”.", "hide": "The post appears only in languages that have a complete translation." },
+      "fallbackMode": {
+        "default": "Show the default language",
+        "label": "Show the default language with a note",
+        "hide": "Hide the post"
+      },
+      "fallbackHelp": {
+        "default": "Readers see the default-language text at that language's address.",
+        "label": "Same, and the store can show “not yet translated”.",
+        "hide": "The post appears only in languages that have a complete translation."
+      },
       "routing": "Storefront paths",
       "routingHelp": "Set in the plugin options (routing): base path, prefix per language, category and feed segments.",
       "imageOrigins": "Allowed image hosts",
@@ -182,6 +278,16 @@
       "invalid": "Some fields are not valid.",
       "locked": "This setting is fixed in the plugin options."
     },
-    "credit": { "text": "Blog SEO plugin by Haus Kayu", "help": "Help" }
+    "credit": {
+      "text": "Blog SEO plugin by Haus Kayu",
+      "help": "Help"
+    },
+    "localeMissing": "missing",
+    "readOnly": "read-only",
+    "slugChange": {
+      "title": "Change the address?",
+      "text": "The post is public. Its old address will redirect permanently (301) to the new one:",
+      "line": "{{from}} → {{to}}"
+    }
   }
 }
