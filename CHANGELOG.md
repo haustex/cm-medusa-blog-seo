@@ -20,4 +20,12 @@ All notable changes to this project are documented here. The format follows
   Admin API `/admin/blog-seo/*`; events `blog_seo.*` with slugs per locale and an optional batched
   revalidate webhook.
 - Exports: `medusa-blog-seo/sdk` (typed client), `medusa-blog-seo/seo` (URLs, hreflang, sitemap entries,
-  RSS), `medusa-blog-seo/jsonld` (BlogPosting, BreadcrumbList, FAQPage, ItemList).
+  RSS, `postRedirectUrl`), `medusa-blog-seo/jsonld` (BlogPosting, BreadcrumbList, FAQPage, ItemList).
+- Slug history per locale (`bseo_post_slug_history`): a changed slug (edited, or a locale that leaves the fallback
+  for its own translation) keeps its old address; `GET /store/blog-seo/posts/{slug}` answers
+  `{ post: null, redirect, status: 301 }` for it. No chains or loops: history points at the post, live slugs win.
+- Admin UI under **Blog**: post list with status tiles, filters (status, category, missing translation, search),
+  editor with one tab per language (or side by side with the default language), completeness badges, rich editor
+  (Tiptap: headings, lists, tables, photos, YouTube, product cards, Q&A), SEO fields, covers, products, publish /
+  schedule (browser time zone) / unpublish / delete, preview links, autosave for drafts; categories, authors and
+  settings pages (locales, default, fallback; fields fixed by options are read-only). English and Indonesian.
