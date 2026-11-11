@@ -1,6 +1,6 @@
 {
   "name": "medusa-blog-seo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Multilingual blog for Medusa v2 with SEO built in: posts, categories, authors, any number of locales with fallback rules, scheduled publishing, preview links, rich editor, shoppable product cards, JSON-LD / hreflang / sitemap / RSS helpers — by Haus Kayu",
   "author": "Haus Kayu <dev@hauskayu.com> (https://hauskayu.com)",
   "license": "MIT",

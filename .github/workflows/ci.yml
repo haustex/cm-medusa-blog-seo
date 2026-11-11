@@ -61,6 +61,9 @@ jobs:
           exit 1
 
       - name: E2E
+        # the latest leg also builds the Admin and checks that the plugin's Tailwind classes reach the Admin CSS
+        env:
+          BSEO_ADMIN: ${{ matrix.medusa == '2.22.2' && '1' || '' }}
         run: node integration-tests/e2e.mjs
 
       - name: Logs

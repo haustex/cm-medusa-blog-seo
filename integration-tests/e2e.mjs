@@ -17,9 +17,11 @@
 import { spawn, spawnSync } from "node:child_process"
 import fs from "node:fs"
 import http from "node:http"
+import { createRequire } from "node:module"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import zlib from "node:zlib"
+import { missingClasses } from "../scripts/admin-classes.mjs"
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PLUGIN_DIR = path.resolve(HERE, "..")
@@ -28,6 +30,7 @@ const STATE_DIR = path.join(HERE, ".state")
 const GUARD = path.join(PLUGIN_DIR, "scripts/guard.mjs")
 const MEDUSA = path.join(PLUGIN_DIR, "node_modules/.bin/medusa")
 const PACKAGE = "medusa-blog-seo"
+const NPM = fs.existsSync(path.join(path.dirname(process.execPath), "npm")) ? path.join(path.dirname(process.execPath), "npm") : "npm"
 
 const DB_NAME = "bseo_e2e"
 const PG_CONTAINER = process.env.BSEO_PG_CONTAINER || "rw-spike-pg"
@@ -45,7 +48,6 @@ const env = {
   DATABASE_URL: `postgres://postgres:spike@127.0.0.1:55436/${DB_NAME}`,
   REDIS_URL: "redis://127.0.0.1:56383",
   PORT: String(PORT),
-  BSEO_PLUGIN_DIR: PLUGIN_DIR,
   BSEO_ADMIN: process.env.BSEO_ADMIN ?? "",
   BSEO_CREDIT: process.env.BSEO_CREDIT ?? (SERVE ? "" : "1"),
   BSEO_UPLOAD_DIR: path.join(APP_DIR, "static"), // Medusa serves <app>/static at /static
@@ -67,15 +69,53 @@ function inside(p) {
 }
 const rmGuarded = (p) => fs.rmSync(inside(p), { recursive: true, force: true })
 
-function linkNodeModules() {
+/**
+ * The app gets the plugin the way a user does: the `npm pack` tarball unpacked into app/node_modules (not a symlink
+ * to the source tree). Dependencies are symlinked from the plugin's node_modules, so @medusajs/admin-bundler really
+ * lives there; the unpacked package is therefore linked into the plugin's own node_modules too, which makes the
+ * bundler's require.resolve("medusa-blog-seo/admin") (what feeds Tailwind) work as in a real install.
+ */
+function installPlugin() {
   const target = path.join(APP_DIR, "node_modules")
   rmGuarded(target)
   fs.mkdirSync(target, { recursive: true })
   for (const entry of fs.readdirSync(path.join(PLUGIN_DIR, "node_modules"))) {
-    if ([".package-lock.json", ".cache", ".vite", ".bin"].includes(entry)) continue
+    if ([".package-lock.json", ".cache", ".vite", ".bin", PACKAGE].includes(entry)) continue
     fs.symlinkSync(path.join(PLUGIN_DIR, "node_modules", entry), path.join(target, entry))
   }
-  fs.symlinkSync(PLUGIN_DIR, path.join(target, PACKAGE))
+  const pack = spawnSync(NPM, ["pack", "--ignore-scripts", "--json", "--pack-destination", STATE_DIR], { cwd: PLUGIN_DIR, encoding: "utf8" })
+  if (pack.status !== 0) throw new Error(`npm pack failed: ${pack.stderr}`)
+  const tgz = path.join(STATE_DIR, JSON.parse(pack.stdout)[0].filename)
+  const dest = path.join(target, PACKAGE)
+  fs.mkdirSync(dest)
+  run("tar", ["-xzf", tgz, "-C", dest, "--strip-components=1"])
+  const selfLink = path.join(PLUGIN_DIR, "node_modules", PACKAGE)
+  let stat
+  try {
+    stat = fs.lstatSync(selfLink)
+  } catch {}
+  if (stat && !stat.isSymbolicLink()) throw new Error(`${selfLink} exists and is not a symlink from an earlier run; remove it by hand`)
+  if (stat) fs.unlinkSync(selfLink) // only ever the symlink this function made
+  fs.symlinkSync(dest, selfLink)
+}
+
+/** After `medusa build` with the Admin: the bundler could resolve the package and Tailwind generated its classes */
+function checkAdminBuild(serverDir) {
+  section("admin build")
+  const bundlerPkg = fs.realpathSync(path.join(PLUGIN_DIR, "node_modules/@medusajs/admin-bundler/package.json"))
+  let resolved = null
+  try {
+    resolved = createRequire(bundlerPkg).resolve(`${PACKAGE}/admin`)
+  } catch (e) {
+    resolved = String(e.code || e)
+  }
+  const installed = path.join(APP_DIR, "node_modules", PACKAGE)
+  check(`@medusajs/admin-bundler resolves ${PACKAGE}/admin to the installed package`, resolved.startsWith(installed + path.sep), resolved)
+  const assets = path.join(serverDir, "public/admin/assets")
+  const css = fs.readdirSync(assets).filter((f) => f.endsWith(".css")).map((f) => fs.readFileSync(path.join(assets, f), "utf8"))
+  const bundle = fs.readFileSync(path.join(installed, ".medusa/server/src/admin/index.js"), "utf8")
+  const { total, missing } = missingClasses(bundle, css)
+  check(`Admin CSS contains every Tailwind class of the plugin bundle (${total})`, css.length > 0 && total > 0 && missing.length === 0, missing)
 }
 
 function psql(sql, db) {
@@ -574,7 +614,7 @@ async function main() {
     for (const d of ["private", "static"]) rmGuarded(path.join(APP_DIR, d))
   }
   fs.mkdirSync(STATE_DIR, { recursive: true })
-  linkNodeModules()
+  installPlugin()
   await waitForPostgres()
   if (!KEEP_DB) {
     psql(`DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE)`)
@@ -589,6 +629,7 @@ async function main() {
     serverDir = path.join(APP_DIR, ".medusa/server")
     rmGuarded(path.join(serverDir, "node_modules"))
     fs.symlinkSync(path.join(APP_DIR, "node_modules"), path.join(serverDir, "node_modules"))
+    checkAdminBuild(serverDir)
     fs.mkdirSync(path.join(APP_DIR, "static"), { recursive: true })
     if (!fs.existsSync(path.join(serverDir, "static"))) fs.symlinkSync(path.join(APP_DIR, "static"), path.join(serverDir, "static"))
   }

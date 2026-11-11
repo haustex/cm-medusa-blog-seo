@@ -134,6 +134,12 @@ Full steps: [Installation](#installation) · [Languages](#languages-and-fallback
 4. Restart. The job `blog-seo-publish-scheduled` runs on the worker.
 5. In the Admin, open **Blog → Settings** and set your languages (unless you fixed them in the options).
 
+> **Note for pnpm without hoisting or a locally linked copy:** the Admin build picks up this plugin's Tailwind classes
+> through `require.resolve("medusa-blog-seo/admin")` from `@medusajs/admin-bundler`; if the bundler cannot resolve the package
+> (pnpm with `hoist=false`, or a plugin symlinked from outside the project), the plugin's Admin pages lose their layout.
+> npm, Yarn and pnpm's defaults are fine; otherwise install from npm (or `npm pack`) next to the bundler, or add
+> `hoist-pattern[]=medusa-blog-seo` to `.npmrc`.
+
 ### Languages and fallback
 
 Every post has a translation row per language. The **default locale** is required for publishing; the others are
@@ -399,6 +405,12 @@ npx medusa db:migrate
 Buka **Blog** di sidebar Admin. Tabel opsi lengkap: [Plugin options](#plugin-options). Contoh storefront Next.js
 (halaman tulisan dengan redirect slug lama, metadata + hreflang, sitemap, RSS): [Storefront (Next.js)](#storefront-nextjs).
 Batasan (5000 tulisan di memori untuk index/sitemap/RSS, ukuran isi dan gambar): [Limits](#limits).
+
+> **Catatan untuk pnpm tanpa hoisting atau plugin yang di-symlink lokal:** build Admin mengambil class Tailwind plugin
+> ini lewat `require.resolve("medusa-blog-seo/admin")` dari `@medusajs/admin-bundler`; kalau bundler tidak bisa me-resolve paketnya
+> (pnpm dengan `hoist=false`, atau plugin di-symlink dari luar proyek), halaman Admin plugin kehilangan layout-nya. npm,
+> Yarn, dan pnpm bawaan aman; selain itu pasang dari npm (atau `npm pack`) di sebelah bundler, atau tambahkan
+> `hoist-pattern[]=medusa-blog-seo` di `.npmrc`.
 
 ### Alur
 

@@ -3,7 +3,8 @@ import { defineConfig } from "@medusajs/framework/utils"
 
 // Test app for the E2E suite. Only started through scripts/guard.mjs, which on
 // the Haus Kayu host allows nothing but the rw-spike-* containers and ports 9700+.
-const pluginDir = process.env.BSEO_PLUGIN_DIR || path.resolve(__dirname, "../..")
+// e2e.mjs installs the plugin from its npm pack tarball into node_modules, like a user would
+const pluginDir = process.env.BSEO_PLUGIN_DIR || "medusa-blog-seo"
 const uploads = process.env.BSEO_UPLOAD_DIR || path.join(__dirname, "static")
 const port = process.env.PORT || "9700"
 

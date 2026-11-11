@@ -5,6 +5,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-11
+
+### Changed
+
+- Tests: the E2E app installs the plugin from its `npm pack` tarball instead of a symlink to the source tree, and
+  with the Admin built (CI on the latest Medusa) checks that `@medusajs/admin-bundler` resolves
+  `medusa-blog-seo/admin` and that every Tailwind class of the plugin's Admin bundle is in the Admin CSS
+  (`scripts/admin-classes.mjs`). The earlier symlinked setup made the bundler's resolve fail silently, which is why
+  0.1.0 moved the layout to the plugin's own `.bseo-*` CSS; that CSS stays (it works in both cases), the wrong
+  explanation in `CLAUDE.md` is corrected.
+
+### Documentation
+
+- README: note on Admin Tailwind classes when the plugin is not resolvable from `@medusajs/admin-bundler` (pnpm without
+  hoisting, locally symlinked plugin).
+
 ## [0.1.1] - 2026-11-11
 
 ### Changed
@@ -39,6 +55,7 @@ All notable changes to this project are documented here. The format follows
   schedule (browser time zone) / unpublish / delete, preview links, autosave for drafts; categories, authors and
   settings pages (locales, default, fallback; fields fixed by options are read-only). English and Indonesian.
 
-[Unreleased]: https://github.com/haustex/cm-medusa-blog-seo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/haustex/cm-medusa-blog-seo/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/haustex/cm-medusa-blog-seo/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/haustex/cm-medusa-blog-seo/compare/f2fcafc...v0.1.1
 [0.1.0]: https://github.com/haustex/cm-medusa-blog-seo/commit/f2fcafc

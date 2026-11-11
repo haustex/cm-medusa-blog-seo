@@ -42,8 +42,17 @@ docker run -d --name rw-spike-pg -e POSTGRES_PASSWORD=spike -e POSTGRES_DB=rw_sp
 npm run build && npm run test:e2e
 ```
 
-`BSEO_ADMIN=1 BSEO_KEEP=1 npm run test:e2e` builds the Admin too and keeps the server running on
-http://127.0.0.1:9700/app (login `admin@e2e.test` / `e2e-password-123`) to look at the Blog pages.
+`BSEO_ADMIN=1 BSEO_KEEP=1 npm run test:e2e` builds the Admin too (CI does this on the latest Medusa) and keeps the
+server running on http://127.0.0.1:9700/app (login `admin@e2e.test` / `e2e-password-123`) to look at the Blog
+pages. With the Admin built, the suite also checks that `@medusajs/admin-bundler` resolves `medusa-blog-seo/admin`
+and that every Tailwind class of the plugin's Admin bundle is in the built Admin CSS (`node scripts/admin-classes.mjs
+<bundle.js> <admin.css>` runs that comparison by hand).
+
+The app installs the plugin from its `npm pack` tarball (unpacked into `integration-tests/app/node_modules`), so the
+tests see exactly what a user installs; the dependencies are symlinked from the plugin's `node_modules`, and the
+unpacked package is linked back as `node_modules/medusa-blog-seo` in the plugin folder so the Admin bundler can
+resolve it (that symlink is the only thing the suite touches outside `integration-tests/`; it replaces its own
+symlink on the next run and refuses to touch anything else there).
 `BSEO_NO_SHARP=1` runs the upload checks without image processing; `BSEO_LOCK=1` starts the app with locales
 fixed in the plugin options; `BSEO_CREDIT=1` turns `showCredit` on (the checks do; the default is off).
 
@@ -62,7 +71,7 @@ integration-tests/admin-browser.mjs`. Not part of CI.
 
 The suite removes its own folders (`integration-tests/.state`, `app/static`, `app/private`, `app/node_modules`,
 the built server's `node_modules`) through one guarded function that refuses any path outside
-`integration-tests/`.
+`integration-tests/`; the tarball of each run lands in `integration-tests/.state`.
 
 Every Medusa command goes through `scripts/guard.mjs`, which refuses any database other than `127.0.0.1:55436`,
 any Redis other than `127.0.0.1:56383` and HTTP ports below 9700.

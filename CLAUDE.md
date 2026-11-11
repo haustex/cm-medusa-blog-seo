@@ -34,10 +34,14 @@ This host also runs the **hauskayu.com production store**.
   Module's origin (learned from uploads into `settings.metadata.image_origins`) and `content.image_origins`.
 - Uploads: `storeImage` with optional `sharp` (`loadSharp()`), header parser for dimensions without sharp.
 - Public lists load up to 5000 posts (`listPublicPosts`), documented as a limit in the README.
-- **Medusa's Admin Tailwind build does not scan plugin extensions**: only utility classes the dashboard itself uses
-  exist at runtime (`sm:grid-cols-2`, arbitrary `grid-cols-[…]`, `items-baseline`… are missing). Layout the
-  plugin needs lives in `src/admin/components/styles.tsx` (`.bseo-*` rules, rendered on every page); check new
-  classes against `integration-tests/app/.medusa/server/public/admin/assets/*.css` after an Admin build.
+- **Admin Tailwind and plugins**: `@medusajs/admin-bundler` adds `dirname(require.resolve("<plugin>/admin"))` to
+  Tailwind's `content`, so the plugin's built Admin bundle is scanned and its utility classes exist at runtime, in
+  npm, Yarn and default pnpm installs. The resolve happens from the bundler's real location: it fails silently when
+  the package is not reachable from there (pnpm without hoisting; a plugin symlinked from outside the project, which
+  is what the old test harness did and why layouts looked one-column on 11 Nov 2026). The harness now installs the
+  `npm pack` tarball and links it into the plugin's node_modules; `BSEO_ADMIN=1` checks the resolve and that every
+  class of the bundle is in the Admin CSS (`scripts/admin-classes.mjs`). `src/admin/components/styles.tsx`
+  (`.bseo-*`) stays: it works either way. Use only tokens Medusa UI defines (`ui-fg-warning` does not exist).
 - Admin UI: Medusa UI + react-i18next (`src/admin/i18n`), Tiptap 3 editor, drafts autosave through `changedFields`
   (diff only), published posts save on demand; routes under `/blog-seo`.
 - E2E (`integration-tests/e2e.mjs`): hook server on 9701 records the revalidate webhook; `makePng()` builds a real
