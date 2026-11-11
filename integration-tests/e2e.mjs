@@ -7,7 +7,10 @@
 //   docker run -d --name rw-spike-pg -e POSTGRES_PASSWORD=spike -e POSTGRES_DB=rw_spike -p 127.0.0.1:55436:5432 postgres:17-alpine
 //   node integration-tests/e2e.mjs
 //
-// BSEO_PG_CONTAINER: name of the Postgres container (default rw-spike-pg). BSEO_KEEP=1 keeps the server running.
+// BSEO_PG_CONTAINER: name of the Postgres container (default rw-spike-pg). BSEO_KEEP=1 keeps the server running
+// after the checks; BSEO_SERVE=1 skips the checks and only starts the (empty) app, e.g. with BSEO_ADMIN=1 to click
+// through the Admin (then integration-tests/seed-demo.mjs fills in sample content). BSEO_CREDIT=1 turns the
+// plugin's showCredit option on (the checks do; the default is off, as in the plugin).
 // BSEO_NO_SHARP=1 runs the upload checks without image processing. Every medusa command goes through
 // scripts/guard.mjs (rw-spike-* containers and ports 9700+ only).
 import { spawn, spawnSync } from "node:child_process"
@@ -32,6 +35,8 @@ const HOOK_PORT = 9701
 const BASE = `http://127.0.0.1:${PORT}`
 const ADMIN = { email: "admin@e2e.test", password: "e2e-password-123" }
 const NO_SHARP = process.env.BSEO_NO_SHARP === "1"
+const SERVE = process.env.BSEO_SERVE === "1"
+const KEEP = SERVE || process.env.BSEO_KEEP === "1"
 
 const env = {
   ...process.env,
@@ -40,6 +45,7 @@ const env = {
   PORT: String(PORT),
   BSEO_PLUGIN_DIR: PLUGIN_DIR,
   BSEO_ADMIN: process.env.BSEO_ADMIN ?? "",
+  BSEO_CREDIT: process.env.BSEO_CREDIT ?? (SERVE ? "" : "1"),
   BSEO_UPLOAD_DIR: path.join(APP_DIR, "static"), // Medusa serves <app>/static at /static
   BSEO_REVALIDATE_URL: `http://127.0.0.1:${HOOK_PORT}/revalidate`,
   NODE_ENV: "development",
@@ -591,11 +597,11 @@ async function main() {
       if (i > 120) throw new Error("server did not start, see integration-tests/.state/server.log")
       await new Promise((r) => setTimeout(r, 1000))
     }
-    await checks()
-    if (process.env.BSEO_KEEP === "1") {
+    if (!SERVE) await checks()
+    if (KEEP) {
       fs.writeFileSync(path.join(STATE_DIR, "server.pid"), String(server.pid))
       console.log(`\nserver kept running on ${BASE} (pid ${server.pid}); stop with: kill -- -${server.pid}`)
-      console.log(`\n${passes} passed, ${failures} failed`)
+      if (!SERVE) console.log(`\n${passes} passed, ${failures} failed`)
       process.exit(failures ? 1 : 0)
     }
   } finally {

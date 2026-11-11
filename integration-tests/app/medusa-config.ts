@@ -31,7 +31,7 @@ module.exports = defineConfig({
         content: { image_origins: ["https://cdn.e2e.test/media"], site_hosts: ["storefront.e2e.test"] },
         uploads: { process_images: process.env.BSEO_NO_SHARP !== "1" },
         revalidate: process.env.BSEO_REVALIDATE_URL ? { url: process.env.BSEO_REVALIDATE_URL, secret: "e2e-revalidate", delay_ms: 300 } : undefined,
-        showCredit: true,
+        showCredit: process.env.BSEO_CREDIT === "1", // off by default, as in the plugin
       },
     },
   ],
