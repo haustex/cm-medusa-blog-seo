@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useBlocker, useNavigate, useParams } from "react-router-dom"
 import { CoverField } from "../../../components/cover-field"
+import { BseoStyles } from "../../../components/styles"
 import { CreditFooter } from "../../../components/credit-footer"
 import { ProductPicker, ProductThumb } from "../../../components/product-picker"
 import { RichEditor } from "../../../components/rich-editor"
@@ -260,13 +261,13 @@ const PostEditor = () => {
         </Container>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_320px]">
+      <div className="bseo-cols-editor gap-3">
         <Container className="flex flex-col gap-4 px-6 py-4">
           <div className="flex flex-wrap items-center gap-2">
             {locales.map((x) => {
               const missing = completeness[x.code] ?? ["title", "excerpt", "body"]
               return (
-                <button key={x.code} type="button" style={{ minHeight: 40 }} className={`flex items-center gap-2 rounded-md border px-3 ${editing === x.code ? "border-ui-fg-base bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`} onClick={() => setActive(x.code)} data-bseo={`tab-${x.code}`}>
+                <button key={x.code} type="button" style={{ minHeight: 40 }} className={`flex items-center gap-2 rounded-md border px-3 ${editing === x.code ? "bseo-active bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`} onClick={() => setActive(x.code)} data-bseo={`tab-${x.code}`}>
                   <Text size="small" weight="plus">{x.name}</Text>
                   <Badge size="2xsmall" color={missing.length ? "orange" : "green"}>{!missing.length ? t("blogSeo.complete") : completeness[x.code]?.length === 4 || !completeness[x.code] ? t("blogSeo.localeMissing") : t("blogSeo.incomplete")}</Badge>
                 </button>
@@ -279,7 +280,7 @@ const PostEditor = () => {
               </label>
             )}
           </div>
-          <div className={`grid gap-6 ${splitOn ? "lg:grid-cols-2" : ""}`} data-bseo={splitOn ? "split-on" : "split-off"}>
+          <div className={`${splitOn ? "bseo-cols-2" : "grid"} gap-6`} data-bseo={splitOn ? "split-on" : "split-off"}>
             {splitOn && (() => { const d = locales.find((y) => y.code === defaultLocale)!; return <LocaleReadOnly key={`ro-${defaultLocale}`} code={defaultLocale} name={d.name} dir={d.dir} t={fields.translations[defaultLocale]} /> })()}
             {(() => {
               const x = locales.find((y) => y.code === editing)!
@@ -360,6 +361,7 @@ const PostEditor = () => {
         </div>
       </div>
       <CreditFooter />
+      <BseoStyles />
     </div>
   )
 }

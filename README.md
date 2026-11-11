@@ -61,6 +61,14 @@ Full steps: [Installation](#installation) · [Languages](#languages-and-fallback
 
 [English](#english) · [Bahasa Indonesia](#bahasa-indonesia)
 
+| Posts | Editor, side by side with the default language |
+| --- | --- |
+| ![Blog posts in the Admin: status tiles, filters, per-language badges](docs/screenshots/admin-posts.png) | ![Post editor: the default language read-only next to the translation being edited](docs/screenshots/admin-editor-side-by-side.png) |
+
+| Languages |
+| --- |
+| ![Blog settings: languages, order, direction, default and fallback](docs/screenshots/admin-settings.png) |
+
 ---
 
 ## English

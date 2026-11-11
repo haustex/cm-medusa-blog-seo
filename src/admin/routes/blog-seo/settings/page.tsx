@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { BseoStyles } from "../../../components/styles"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
 import { api, POSTS_KEY, SETTINGS_KEY, type AdminSettings } from "../../../lib/api"
@@ -49,7 +50,7 @@ function SettingsForm({ initial }: { initial: AdminSettings }) {
   const upd = (i: number, patch: Partial<LocaleRow>) => setLocales(locales.map((l, k) => (k === i ? { ...l, ...patch } : l)))
 
   return (
-    <Container className="flex flex-col gap-5 px-6 py-4">
+    <Container className="flex flex-col gap-4 px-6 py-4">
       <div>
         <Heading level="h2">{t("blogSeo.settings.locales")}</Heading>
         <Text size="small" className="text-ui-fg-subtle mt-1">{t("blogSeo.settings.localesHelp")}</Text>
@@ -57,7 +58,7 @@ function SettingsForm({ initial }: { initial: AdminSettings }) {
       </div>
       <ul className="divide-y rounded-lg border">
         {locales.map((l, i) => (
-          <li key={l.code} className="grid items-center gap-2 px-3 py-2 sm:grid-cols-[72px_1fr_110px_auto_auto]">
+          <li key={l.code} className="bseo-cols-locale items-center gap-2 px-3 py-2">
             <Text size="small" weight="plus" className="font-mono">{l.code}</Text>
             <Input value={l.name} disabled={locked.locales} placeholder={t("blogSeo.settings.nameAuto")} maxLength={80} onChange={(e) => upd(i, { name: e.target.value })} style={{ height: 40 }} aria-label={t("blogSeo.settings.localeName")} />
             <Select value={l.dir} disabled={locked.locales} onValueChange={(v) => upd(i, { dir: v as "ltr" | "rtl" })}>
@@ -80,14 +81,14 @@ function SettingsForm({ initial }: { initial: AdminSettings }) {
         ))}
       </ul>
       {!locked.locales && (
-        <div className="flex flex-wrap items-end gap-2">
-          <Field label={t("blogSeo.settings.addLocale")} hint={t("blogSeo.settings.addLocaleHint")}>
-            <Input value={newCode} placeholder="pt-BR" maxLength={16} onChange={(e) => setNewCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())} style={{ height: 40, maxWidth: 160 }} />
-          </Field>
-          <Button type="button" variant="secondary" style={{ minHeight: 40 }} onClick={add}>{t("blogSeo.add")}</Button>
-        </div>
+        <Field label={t("blogSeo.settings.addLocale")} hint={t("blogSeo.settings.addLocaleHint")}>
+          <div className="flex gap-2">
+            <Input value={newCode} placeholder="pt-BR" maxLength={16} onChange={(e) => setNewCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), add())} style={{ height: 40, width: 160 }} />
+            <Button type="button" variant="secondary" style={{ minHeight: 40 }} onClick={add}>{t("blogSeo.add")}</Button>
+          </div>
+        </Field>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="bseo-cols-2 bseo-sm gap-4">
         <Field label={t("blogSeo.settings.defaultLocale")} hint={t("blogSeo.settings.defaultLocaleHelp")}>
           <Select value={defaultLocale} disabled={locked.default_locale} onValueChange={setDefaultLocale}>
             <Select.Trigger style={{ height: 44 }}><Select.Value /></Select.Trigger>
@@ -131,6 +132,7 @@ const SettingsPage = () => {
       </Container>
       {isError ? <Container className="px-6 py-4"><Text size="small" className="text-ui-fg-error">{t("blogSeo.loadError")}</Text></Container> : isLoading || !settings ? <Container className="px-6 py-6"><Text size="small" className="text-ui-fg-subtle">{t("blogSeo.loading")}</Text></Container> : <SettingsForm key={JSON.stringify(settings)} initial={settings} />}
       <CreditFooter />
+      <BseoStyles />
     </div>
   )
 }

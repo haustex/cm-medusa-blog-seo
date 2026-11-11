@@ -34,6 +34,10 @@ This host also runs the **hauskayu.com production store**.
   Module's origin (learned from uploads into `settings.metadata.image_origins`) and `content.image_origins`.
 - Uploads: `storeImage` with optional `sharp` (`loadSharp()`), header parser for dimensions without sharp.
 - Public lists load up to 5000 posts (`listPublicPosts`), documented as a limit in the README.
+- **Medusa's Admin Tailwind build does not scan plugin extensions**: only utility classes the dashboard itself uses
+  exist at runtime (`sm:grid-cols-2`, arbitrary `grid-cols-[…]`, `items-baseline`… are missing). Layout the
+  plugin needs lives in `src/admin/components/styles.tsx` (`.bseo-*` rules, rendered on every page); check new
+  classes against `integration-tests/app/.medusa/server/public/admin/assets/*.css` after an Admin build.
 - Admin UI: Medusa UI + react-i18next (`src/admin/i18n`), Tiptap 3 editor, drafts autosave through `changedFields`
   (diff only), published posts save on demand; routes under `/blog-seo`.
 - E2E (`integration-tests/e2e.mjs`): hook server on 9701 records the revalidate webhook; `makePng()` builds a real

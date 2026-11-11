@@ -18,7 +18,7 @@ export function LocaleReadOnly({ code, name, dir, t: tr }: { code: string; name:
       <Text size="small" className="text-ui-fg-muted">{t("blogSeo.fields.excerpt")}</Text>
       <Text size="small">{tr.excerpt || "–"}</Text>
       <Text size="small" className="text-ui-fg-muted">{t("blogSeo.fields.body")}</Text>
-      <div className="bseo-prose max-h-[70vh] overflow-y-auto rounded-md border bg-ui-bg-base" dangerouslySetInnerHTML={{ __html: tr.body || "<p>–</p>" }} />
+      <div className="bseo-prose bseo-maxh overflow-y-auto rounded-md border bg-ui-bg-base" dangerouslySetInnerHTML={{ __html: tr.body || "<p>–</p>" }} />
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { BseoStyles } from "../../../components/styles"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
 import { api, CATEGORIES_KEY, POSTS_KEY, slugPreview, type AdminCategory } from "../../../lib/api"
@@ -24,7 +25,7 @@ function CategoryForm({ initial, isNew, busy, onSave, onCancel }: { initial: Dra
   const seg = settings?.routing.category ?? "category"
   return (
     <form className="flex flex-col gap-4 px-6 py-4" onSubmit={(e) => { e.preventDefault(); onSave(d) }}>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="bseo-cols-2 gap-4">
         {locales.map((x) => {
           const tr = d.translations[x.code]
           const isDefault = x.code === defaultLocale
@@ -128,6 +129,7 @@ const CategoriesPage = () => {
         )}
       </Container>
       <CreditFooter />
+      <BseoStyles />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { CoverField } from "../../../components/cover-field"
+import { BseoStyles } from "../../../components/styles"
 import { CreditFooter } from "../../../components/credit-footer"
 import { Field } from "../../../components/states"
 import { api, AUTHORS_KEY, POSTS_KEY, type AdminAuthor } from "../../../lib/api"
@@ -28,7 +29,7 @@ function AuthorForm({ initial, isNew, busy, onSave, onCancel }: { initial: Draft
   const setT = (code: string, k: "job_title" | "bio", v: string) => setD({ ...d, translations: { ...d.translations, [code]: { ...d.translations[code], [k]: v } } })
   return (
     <form className="flex flex-col gap-4 px-6 py-4" onSubmit={(e) => { e.preventDefault(); onSave(d) }}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="bseo-cols-2 bseo-sm gap-4">
         <Field label={t("blogSeo.fields.name")}>
           <Input required maxLength={120} value={d.name} onChange={(e) => set({ name: e.target.value })} style={{ height: 44 }} />
         </Field>
@@ -52,7 +53,7 @@ function AuthorForm({ initial, isNew, busy, onSave, onCancel }: { initial: Draft
         </Field>
         <CoverField label={t("blogSeo.authors.avatar")} value={d.avatar} ratio="1 / 1" kind="avatar" maxWidth={160} onChange={(url) => set({ avatar: url })} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="bseo-cols-2 gap-4">
         {locales.map((x) => (
           <Container key={x.code} className="flex flex-col gap-3 px-4 py-3" dir={x.dir}>
             <Text size="small" weight="plus">{x.name}</Text>
@@ -149,6 +150,7 @@ const AuthorsPage = () => {
         )}
       </Container>
       <CreditFooter />
+      <BseoStyles />
     </div>
   )
 }

@@ -9,7 +9,7 @@ export const Loading = () => (
 
 export const Field = ({ label, hint, count, children, htmlFor }: { label: string; hint?: React.ReactNode; count?: string; children: React.ReactNode; htmlFor?: string }) => (
   <div className="flex flex-col gap-1">
-    <div className="flex items-baseline justify-between gap-2">
+    <div className="bseo-baseline flex justify-between gap-2">
       <Label size="xsmall" weight="plus" htmlFor={htmlFor}>{label}</Label>
       {count && <Text size="xsmall" className="text-ui-fg-muted tabular-nums">{count}</Text>}
     </div>

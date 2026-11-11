@@ -5,6 +5,7 @@ import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { BseoStyles } from "../../components/styles"
 import { CreditFooter } from "../../components/credit-footer"
 import { api, CATEGORIES_KEY, errorOf, formatDateTime, lang, POSTS_KEY, STATUS_COLOR, STATUSES, type AdminPost, type PostStatus } from "../../lib/api"
 import { useBlogSettings } from "../../lib/use-settings"
@@ -52,7 +53,7 @@ const BlogPage = () => {
 
   const counts = data?.counts
   const total = counts ? STATUSES.reduce((n, s) => n + (counts[s] ?? 0), 0) : 0
-  const chip = (active: boolean) => `flex flex-none flex-col items-start justify-center rounded-lg border px-3 py-2 text-left ${active ? "border-ui-fg-base bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`
+  const chip = (active: boolean) => `flex flex-none flex-col items-start justify-center rounded-lg border px-3 py-2 text-left ${active ? "bseo-active bg-ui-bg-base-pressed" : "bg-ui-bg-base"}`
   const filtered = !!(status || category || q || missing)
   const catName = (c: { translations: Record<string, { name: string }> }) => c.translations[defaultLocale]?.name ?? Object.values(c.translations)[0]?.name ?? ""
 
@@ -85,7 +86,7 @@ const BlogPage = () => {
           ))}
         </div>
 
-        <div className="grid gap-2 px-6 py-3 sm:grid-cols-[1fr_200px_200px]">
+        <div className="bseo-cols-filters gap-2 px-6 py-3">
           <Input type="search" placeholder={t("blogSeo.search")} value={search} onChange={(e) => setSearch(e.target.value)} style={{ height: 44 }} />
           <Select value={category || "all"} onValueChange={(v) => setFilter({ category: v === "all" ? null : v })}>
             <Select.Trigger style={{ height: 44 }} aria-label={t("blogSeo.fields.category")}><Select.Value /></Select.Trigger>
@@ -156,6 +157,7 @@ const BlogPage = () => {
         )}
       </Container>
       <CreditFooter />
+      <BseoStyles />
     </div>
   )
 }
